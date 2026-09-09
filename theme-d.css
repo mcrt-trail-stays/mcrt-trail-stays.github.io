@@ -1,0 +1,70 @@
+/* Variant D — "Depot": rail-heritage navy, brick and brass, condensed signage type */
+:root{
+  --forest:#1F2F45; --forest-deep:#152238; --forest-ink:#111C2C;
+  --sage:#9FB0BC; --sage-light:#D9E0E5; --sage-pale:#EEF2F4;
+  --cream:#FBF7F0; --cream-deep:#EDE6D8; --paper:#F4EFE5;
+  --charcoal:#2B3440; --ink:#1A2230; --muted:#5E6975; --line:#DCD5C8;
+  --clay:#A8412F; --clay-deep:#8C3325; --ochre:#C9A15A; --water:#4B5D6B; --water-deep:#36454F; --gold-light:#E8C36A;
+  --radius:6px; --radius-lg:10px;
+  --display:'Barlow Condensed', 'Arial Narrow', Impact, sans-serif;
+  --body:'Barlow', 'Public Sans', Arial, sans-serif;
+}
+body{background:#D9D2C4}
+.btn-primary{color:#fff}
+h1,h2{text-transform:uppercase;letter-spacing:.02em;font-weight:700;line-height:.95}
+h1{font-size:clamp(2.6rem,6cqw,4.6rem)}
+h2{font-size:clamp(2rem,3.8cqw,3rem)}
+h3{font-weight:700;letter-spacing:.01em}
+.card h3,.inn-body h3,.tonight-body h3,.tour-body h3,.list-row h3,.feature-body h3{font-size:1.6rem;text-transform:uppercase}
+.eyebrow{color:var(--clay);letter-spacing:.14em}
+.nav{background:var(--cream);border-top:4px solid var(--clay);border-bottom:2px solid var(--forest)}
+.nav-links a{font-family:var(--display);font-size:1.05rem;padding:10px 10px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.brand{font-family:var(--display);font-size:1.5rem;text-transform:uppercase;letter-spacing:.03em}
+.brand-mark{border-radius:4px;background:var(--forest)}
+.trip-pill{border-radius:4px;font-family:var(--display);font-size:1.1rem;text-transform:uppercase;letter-spacing:.04em}
+.trip-pill .count{border-radius:3px}
+.tag,.badge{border-radius:3px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--display);font-size:.82rem;font-weight:600;padding:3px 8px}
+.badge .icon{width:14px;height:14px}
+.badge.fav,.tag.ochre{background:#F3E6C4;color:#5C4514;border-color:#E2CE97}
+.inn-town,.tour-stat{border-radius:3px;font-family:var(--display);font-size:.9rem;letter-spacing:.08em}
+.btn{border-radius:5px;font-family:var(--display);font-size:1.15rem;text-transform:uppercase;letter-spacing:.05em}
+.btn-sm{font-size:1rem}
+.chip,.cat-tabs button,.seg button,.seg a,.mpd button{border-radius:5px}
+.hero-d .hero-art::after{background:linear-gradient(180deg,rgba(17,28,44,.35) 0%,rgba(17,28,44,.2) 40%,rgba(17,28,44,.88) 100%)}
+.hero-in-d{position:relative;padding:110px 0 56px;max-width:820px}
+.hero-d h1{color:#fff}
+.hero-d h1 em{font-style:normal;color:var(--gold-light)}
+.hero-d .hero-lede{font-size:1.2rem;max-width:56ch}
+.hero-stats div{border-left-color:var(--gold-light)}
+.board-band{background:var(--forest);padding:18px 0 22px;border-bottom:4px solid var(--ochre)}
+.board{display:grid;grid-template-columns:auto repeat(6,1fr) auto;gap:10px;align-items:end}
+.board-title{display:flex;flex-direction:column;justify-content:center;padding-right:14px;border-right:2px solid rgba(255,255,255,.2);min-height:64px}
+.board-title .eyebrow{color:var(--gold-light)}
+.board-title b{font-family:var(--display);font-size:1.5rem;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1}
+.board .field label{color:rgba(255,255,255,.75);font-family:var(--display);font-size:.9rem;letter-spacing:.1em}
+.board .field select,.board .field input{border-color:transparent;min-height:52px;border-radius:5px;font-weight:600}
+.board .btn-primary{min-height:52px}
+.timetable{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);font-size:.95rem}
+.timetable th{font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;font-size:.95rem;font-weight:600;text-align:left;background:var(--forest);color:#fff;padding:12px 14px}
+.timetable td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
+.timetable tr:nth-child(even) td{background:var(--paper)}
+.timetable td a{font-family:var(--display);font-size:1.25rem;text-transform:uppercase;letter-spacing:.02em;text-decoration:none;color:var(--forest)}
+.timetable td:first-child b{font-family:var(--display);font-size:1.15rem;letter-spacing:.02em;color:var(--clay)}
+.steps::before{background:var(--line)}
+.step .n{border-radius:4px;font-family:var(--display);font-size:1.5rem}
+.ribbon-walker{background:var(--clay)}
+.ribbon-stop.night{background:var(--ochre)}
+.day-n,.narr .d,.offline .on .d{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;font-size:1.7rem}
+.mile-label,.town-label{font-family:var(--body)}
+.quote{border-left-color:var(--clay)}
+.pkg-banner{border-color:var(--ochre);background:#F7F1E1}
+@container app (max-width: 860px){
+  .hero-in-d{padding:56px 0 36px}
+  .hero-d h1{font-size:2.6rem}
+  .board{grid-template-columns:1fr 1fr}
+  .board-title{grid-column:1/-1;border-right:0;border-bottom:2px solid rgba(255,255,255,.2);padding:0 0 10px;min-height:0}
+  .board .btn-primary{grid-column:1/-1}
+  .timetable{font-size:.9rem}
+  .timetable th,.timetable td{padding:10px}
+}
+@container app (max-width: 480px){.board{grid-template-columns:1fr}}
