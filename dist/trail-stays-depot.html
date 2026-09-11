@@ -459,6 +459,15 @@ footer .fine{margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,
 .quick div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center;font-size:.9rem;font-weight:600}
 .quick .icon{color:var(--forest)}
 .quick .no{color:var(--muted);font-weight:500}
+/* ---- Trail Circle ---- */
+.circle{display:grid;grid-template-columns:1fr 1.4fr;gap:32px;align-items:center}
+.circle-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.circle-steps>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.circle-steps .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ochre);color:var(--ink);font-family:var(--display);font-weight:700;margin-bottom:8px}
+.circle-steps h3{font-size:1.05rem;margin-bottom:6px}
+.circle-steps p{font-size:.9rem;color:var(--muted)}
+@container app (max-width: 860px){.circle,.circle-steps{grid-template-columns:1fr}}
+
 /* ---- inn-to-inn tours ---- */
 .tour-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}
 .tour-img{display:block;aspect-ratio:16/10;background-size:cover;background-position:center;position:relative}
@@ -633,47 +642,50 @@ h3{font-weight:700;letter-spacing:.01em}
    ResNexus-synced property directory. All properties are fictional.
 ------------------------------------------------------------------- */
 
-const TRAIL = { name: 'Mass Central Rail Trail', length: 104, west: 'Northampton', east: 'Boston' };
+const TRAIL = { name: 'Mass Central Rail Trail', length: 123.5, west: 'Northampton', east: 'Boston', gainEast: 4653, gainWest: 4779,
+  routeUrl: 'https://ridewithgps.com/routes/53812869', routeName: 'MCRT Full Route (Ride with GPS)', mapUrl: 'https://masstrailtracker.com/map' };
 
-/* Towns along the corridor. `y` positions the schematic map. */
+/* Towns along the corridor. `mile` is measured eastbound from Northampton on the
+   current best-route alignment (Ride with GPS route 53812869, 123.5 mi); `gain` is
+   the climb in feet from the previous town heading east; `y` positions the schematic map. */
 const TOWNS = [
-  { id: 'northampton',  name: 'Northampton',            mile: 0,     y: 200 },
-  { id: 'hadley',       name: 'Hadley',                 mile: 3.4,   y: 188 },
-  { id: 'amherst',      name: 'Amherst',                mile: 8.1,   y: 172 },
-  { id: 'belchertown',  name: 'Belchertown',            mile: 15.3,  y: 214 },
-  { id: 'ware',         name: 'Ware',                   mile: 24.7,  y: 246 },
-  { id: 'gilbertville', name: 'Gilbertville',           mile: 30.2,  y: 222 },
-  { id: 'newbraintree', name: 'New Braintree',          mile: 35.6,  y: 196 },
-  { id: 'barre',        name: 'Barre',                  mile: 42.1,  y: 150 },
-  { id: 'oakham',       name: 'Oakham',                 mile: 46.4,  y: 166 },
-  { id: 'rutland',      name: 'Rutland',                mile: 51.0,  y: 186 },
-  { id: 'holden',       name: 'Holden',                 mile: 56.8,  y: 200 },
-  { id: 'westboylston', name: 'West Boylston',          mile: 63.2,  y: 170 },
-  { id: 'boylston',     name: 'Boylston',               mile: 67.0,  y: 165 },
-  { id: 'clinton',      name: 'Clinton',                mile: 70.4,  y: 140 },
-  { id: 'berlin',       name: 'Berlin',                 mile: 75.1,  y: 166 },
-  { id: 'hudson',       name: 'Hudson',                 mile: 80.3,  y: 160 },
-  { id: 'sudbury',      name: 'Sudbury',                mile: 88.0,  y: 200 },
-  { id: 'wayland',      name: 'Wayland',                mile: 92.2,  y: 206 },
-  { id: 'weston',       name: 'Weston',                 mile: 96.0,  y: 216 },
-  { id: 'waltham',      name: 'Waltham',                mile: 99.4,  y: 206 },
-  { id: 'belmont',      name: 'Belmont',                mile: 102.0, y: 196 },
-  { id: 'boston',       name: 'Boston (North Point)',   mile: 104.0, y: 212 }
+  { id: 'northampton', name: 'Northampton', mile: 0.0, gain: 0, y: 200 },
+  { id: 'hadley', name: 'Hadley', mile: 3.2, gain: 40, y: 188 },
+  { id: 'amherst', name: 'Amherst', mile: 8.3, gain: 180, y: 172 },
+  { id: 'belchertown', name: 'Belchertown', mile: 17.8, gain: 810, y: 214 },
+  { id: 'ware', name: 'Ware', mile: 33.1, gain: 824, y: 246 },
+  { id: 'gilbertville', name: 'Gilbertville', mile: 38.8, gain: 534, y: 222 },
+  { id: 'newbraintree', name: 'New Braintree', mile: 42.4, gain: 256, y: 196 },
+  { id: 'barre', name: 'Barre', mile: 48.3, gain: 296, y: 150 },
+  { id: 'oakham', name: 'Oakham', mile: 52.4, gain: 354, y: 166 },
+  { id: 'rutland', name: 'Rutland', mile: 56.5, gain: 392, y: 186 },
+  { id: 'holden', name: 'Holden', mile: 66.5, gain: 561, y: 200 },
+  { id: 'westboylston', name: 'West Boylston', mile: 73.0, gain: 425, y: 170 },
+  { id: 'boylston', name: 'Boylston', mile: 79.1, gain: 324, y: 165 },
+  { id: 'clinton', name: 'Clinton', mile: 82.5, gain: 188, y: 140 },
+  { id: 'berlin', name: 'Berlin', mile: 86.9, gain: 364, y: 166 },
+  { id: 'hudson', name: 'Hudson', mile: 91.7, gain: 224, y: 160 },
+  { id: 'sudbury', name: 'Sudbury', mile: 99.4, gain: 198, y: 200 },
+  { id: 'wayland', name: 'Wayland', mile: 104.4, gain: 171, y: 206 },
+  { id: 'weston', name: 'Weston', mile: 107.6, gain: 162, y: 216 },
+  { id: 'waltham', name: 'Waltham', mile: 111.3, gain: 147, y: 206 },
+  { id: 'belmont', name: 'Belmont', mile: 114.9, gain: 117, y: 196 },
+  { id: 'boston', name: 'Boston (North Point)', mile: 123.5, gain: 129, y: 212 }
 ];
 
 /* Trail sections with surface mix. Percentages are illustrative. */
 const SECTIONS = [
-  { id: 'norwottuck', name: 'Norwottuck Branch', from: 0, to: 15.3, towns: 'Northampton · Hadley · Amherst · Belchertown',
+  { id: 'norwottuck', name: 'Norwottuck Branch', from: 0.0, to: 17.8, towns: 'Northampton · Hadley · Amherst · Belchertown',
     surface: { paved: 90, dust: 10, road: 0 }, blurb: 'Crosses the Connecticut River on a 1,492-foot rail bridge, then rolls through farmland and college towns. Flat, paved, busy on weekends.' },
-  { id: 'wareriver', name: 'Ware River Valley', from: 15.3, to: 42.1, towns: 'Ware · Gilbertville · New Braintree · Barre',
+  { id: 'wareriver', name: 'Ware River Valley', from: 17.8, to: 48.3, towns: 'Ware · Gilbertville · New Braintree · Barre',
     surface: { paved: 20, dust: 55, road: 25 }, blurb: 'The quietest stretch. Mill villages, the Ware River, and long stone-dust miles with on-road connectors where the rail bed is still being acquired.' },
-  { id: 'wachusett', name: 'Wachusett Highlands', from: 42.1, to: 63.2, towns: 'Barre · Oakham · Rutland · Holden · West Boylston',
+  { id: 'wachusett', name: 'Wachusett Highlands', from: 48.3, to: 73.0, towns: 'Barre · Oakham · Rutland · Holden · West Boylston',
     surface: { paved: 15, dust: 80, road: 5 }, blurb: 'The high point of the whole route near Rutland (about 1,000 feet). Woods, ponds, and the Wachusett Reservoir watershed.' },
-  { id: 'nashua', name: 'Nashua & Assabet', from: 63.2, to: 80.3, towns: 'Boylston · Clinton · Berlin · Hudson',
+  { id: 'nashua', name: 'Nashua & Assabet', from: 73.0, to: 91.7, towns: 'Boylston · Clinton · Berlin · Hudson',
     surface: { paved: 60, dust: 25, road: 15 }, blurb: 'Skirts the reservoir, drops into Clinton and follows river valleys east to Hudson\'s revived mill downtown.' },
-  { id: 'wayside', name: 'Wayside', from: 80.3, to: 96.0, towns: 'Sudbury · Wayland · Weston',
+  { id: 'wayside', name: 'Wayside', from: 91.7, to: 107.6, towns: 'Sudbury · Wayland · Weston',
     surface: { paved: 95, dust: 5, road: 0 }, blurb: 'Newly paved through wetlands and meadows in MetroWest. Smooth, shaded, and close to commuter rail.' },
-  { id: 'metro', name: 'Metro Boston', from: 96.0, to: 104, towns: 'Waltham · Belmont · Cambridge · Boston',
+  { id: 'metro', name: 'Metro Boston', from: 107.6, to: 123.5, towns: 'Waltham · Belmont · Cambridge · Boston',
     surface: { paved: 85, dust: 0, road: 15 }, blurb: 'Urban finish along the Charles and the Fitchburg Cutoff into Cambridge, ending near North Point Park.' }
 ];
 
@@ -689,161 +701,161 @@ const LODGING = [
     roomTypes: [ { name: 'Queen Room', sleeps: 2, rate: 179 }, { name: 'King Room', sleeps: 2, rate: 209 }, { name: 'Loft Suite', sleeps: 4, rate: 289 } ],
     testimonials: [ { q: 'Perfect launch point. Bikes stored in the old engine bay, coffee at 6:30, and we were on the trail by seven.', who: 'Dana R., cycled end-to-end, June' } ] },
 
-  { id: 'paradise', name: 'Paradise Pond B&B', town: 'Northampton', type: 'bnb', mile: 1.1, dist: 0.6, rate: 165, rooms: 4, rating: 4.9, reviews: 88, side: 1,
+  { id: 'paradise', name: 'Paradise Pond B&B', town: 'Northampton', type: 'bnb', mile: 1.0, dist: 0.6, rate: 165, rooms: 4, rating: 4.9, reviews: 88, side: 1,
     amen: { breakfast: true, bike: true, laundry: false, pets: false, luggage: true },
     tagline: 'Four-room Victorian a short walk from the river bridge.',
     desc: 'A quiet 1886 Victorian on a side street above the Mill River. Four rooms, a wraparound porch, and a full breakfast served from 7:00. The hosts have walked the whole trail and keep a shelf of maps for guests.',
-    directions: 'Leave the trail at the Damon Road crossing (mile 1.1). Head south on Damon Road 0.4 mi, right on Prospect Street. Blue house with the porch.',
+    directions: 'Leave the trail at the Damon Road crossing (mile 1.0). Head south on Damon Road 0.4 mi, right on Prospect Street. Blue house with the porch.',
     breakfast: 'Full hot breakfast included, 7:00–9:00. Early "trail breakfast" bag available on request.',
     checkin: '4:00 PM', checkout: '10:30 AM', phone: '(413) 555-0177', web: 'paradisepondbb.example', address: '41 Prospect St, Northampton, MA 01060',
     roomTypes: [ { name: 'Porch Room', sleeps: 2, rate: 165 }, { name: 'River Room', sleeps: 2, rate: 185 }, { name: 'Attic Suite', sleeps: 3, rate: 215 } ],
     testimonials: [ { q: 'The breakfast alone is worth the stop. They packed us sandwiches for the Norwottuck section.', who: 'Marcus & Lee, walked 3 days' } ] },
 
-  { id: 'norwottuck', name: 'Norwottuck Farmhouse Inn', town: 'Amherst', type: 'inn', mile: 7.8, dist: 0.4, rate: 198, rooms: 8, rating: 4.8, reviews: 146, side: -1,
+  { id: 'norwottuck', name: 'Norwottuck Farmhouse Inn', town: 'Amherst', type: 'inn', mile: 8.0, dist: 0.4, rate: 198, rooms: 8, rating: 4.8, reviews: 146, side: -1,
     amen: { breakfast: true, bike: true, laundry: true, pets: true, luggage: true },
     tagline: 'Working farm inn where the trail crosses the Hadley fields.',
     desc: 'An eight-room inn in a restored 1790 farmhouse on the Amherst–Hadley line. Rooms look out over the same fields the trail runs through. Breakfast is farm eggs and whatever came out of the garden that week.',
-    directions: 'At mile 7.8, exit north at the Station Road gate. Follow Station Road 0.4 mi; the inn drive is the second left, marked with a green trail sign.',
+    directions: 'At mile 8.0, exit north at the Station Road gate. Follow Station Road 0.4 mi; the inn drive is the second left, marked with a green trail sign.',
     breakfast: 'Farm breakfast included, 6:30–9:00.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(413) 555-0119', web: 'norwottuckfarmhouse.example', address: '220 Station Rd, Amherst, MA 01002',
     roomTypes: [ { name: 'Field Room', sleeps: 2, rate: 198 }, { name: 'Barn Loft', sleeps: 4, rate: 268 } ],
     testimonials: [ { q: 'Dog-friendly, bike shed with a work stand, and they moved our bags on to Belchertown. Effortless.', who: 'Priya S., 5-day ride' } ] },
 
-  { id: 'jabish', name: 'Jabish Brook Inn', town: 'Belchertown', type: 'bnb', mile: 15.6, dist: 0.9, rate: 159, rooms: 5, rating: 4.6, reviews: 64, side: 1,
+  { id: 'jabish', name: 'Jabish Brook Inn', town: 'Belchertown', type: 'bnb', mile: 18.3, dist: 0.9, rate: 159, rooms: 5, rating: 4.6, reviews: 64, side: 1,
     amen: { breakfast: true, bike: true, laundry: false, pets: false, luggage: true },
     tagline: 'Five rooms by the brook at the end of the paved Norwottuck miles.',
     desc: 'A comfortable five-room B&B on the Belchertown common, just where the paved trail ends and the Ware River section begins. Popular first-night stop for walkers heading east.',
-    directions: 'At mile 15.6 the trail meets Route 9. Turn right (south) on Route 9 for 0.6 mi, then left on Maple Street. The inn faces the common.',
+    directions: 'At mile 18.3 the trail meets Route 9. Turn right (south) on Route 9 for 0.6 mi, then left on Maple Street. The inn faces the common.',
     breakfast: 'Continental-plus breakfast included, 7:00–9:30.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(413) 555-0163', web: 'jabishbrookinn.example', address: '8 Maple St, Belchertown, MA 01007',
     roomTypes: [ { name: 'Common Room', sleeps: 2, rate: 159 }, { name: 'Brook Suite', sleeps: 3, rate: 199 } ],
     testimonials: [ { q: 'Exactly 15 miles from Northampton. The innkeeper drew us a map of the on-road connector to Ware.', who: 'The Okafor family' } ] },
 
-  { id: 'millst', name: 'Mill Street Lodge', town: 'Ware', type: 'hotel', mile: 24.5, dist: 0.3, rate: 139, rooms: 32, rating: 4.3, reviews: 301, side: -1,
+  { id: 'millst', name: 'Mill Street Lodge', town: 'Ware', type: 'hotel', mile: 32.8, dist: 0.3, rate: 139, rooms: 32, rating: 4.3, reviews: 301, side: -1,
     amen: { breakfast: true, bike: true, laundry: true, pets: true, luggage: true },
     tagline: 'Renovated mill hotel on the Ware River with a laundry room.',
     desc: 'Thirty-two rooms in a converted textile mill along the Ware River. The most practical stop in the valley: laundry, a bike wash station, a full breakfast, and a diner across the street that opens at 5:30.',
-    directions: 'At mile 24.5 turn south onto Mill Street from the trail crossing. The lodge is the large brick mill 0.3 mi ahead on the river.',
+    directions: 'At mile 32.8 turn south onto Mill Street from the trail crossing. The lodge is the large brick mill 0.3 mi ahead on the river.',
     breakfast: 'Hot breakfast buffet included, 6:00–9:30.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(413) 555-0128', web: 'millstreetlodge.example', address: '77 Mill St, Ware, MA 01082',
     roomTypes: [ { name: 'Double Queen', sleeps: 4, rate: 139 }, { name: 'King River View', sleeps: 2, rate: 169 } ],
     testimonials: [ { q: 'Laundry after two days of stone dust. That is all you need to know.', who: 'Jen T., end-to-end walker' } ] },
 
-  { id: 'wareriver', name: 'Ware River Guest House', town: 'Gilbertville', type: 'rental', mile: 30.4, dist: 1.2, rate: 210, rooms: 1, rating: 4.9, reviews: 41, side: 1,
+  { id: 'wareriver', name: 'Ware River Guest House', town: 'Gilbertville', type: 'rental', mile: 38.9, dist: 1.2, rate: 210, rooms: 1, rating: 4.9, reviews: 41, side: 1,
     amen: { breakfast: false, bike: true, laundry: true, pets: true, luggage: true },
     tagline: 'Whole house for groups, on the covered-bridge side of the river.',
     desc: 'A three-bedroom 1840s house in the mill village of Gilbertville, rented whole. Sleeps six, with a full kitchen, a drying room, and a porch that looks at the covered bridge. Ideal for a group riding the Ware River section together.',
-    directions: 'At mile 30.4 exit at the Gilbertville covered bridge. Cross the bridge, continue 1.1 mi on Bridge Street. White house with the green shutters.',
+    directions: 'At mile 38.9 exit at the Gilbertville covered bridge. Cross the bridge, continue 1.1 mi on Bridge Street. White house with the green shutters.',
     breakfast: 'Self-catered. Kitchen stocked with coffee, eggs and bread for the first morning.',
     checkin: '4:00 PM', checkout: '10:00 AM', phone: '(413) 555-0191', web: 'wareriverguesthouse.example', address: '34 Bridge St, Gilbertville, MA 01031',
     roomTypes: [ { name: 'Whole House (3 BR)', sleeps: 6, rate: 210 } ],
     testimonials: [ { q: 'Six of us, one house, one price. Bags were on the porch before we got there.', who: 'Worcester Cycling Club' } ] },
 
-  { id: 'maplehill', name: 'Maple Hill Inn', town: 'Barre', type: 'inn', mile: 41.8, dist: 0.5, rate: 189, rooms: 9, rating: 4.8, reviews: 173, side: -1,
+  { id: 'maplehill', name: 'Maple Hill Inn', town: 'Barre', type: 'inn', mile: 48.0, dist: 0.5, rate: 189, rooms: 9, rating: 4.8, reviews: 173, side: -1,
     amen: { breakfast: true, bike: true, laundry: false, pets: false, luggage: true },
     tagline: 'Nine-room inn on Barre Common with a sugarhouse out back.',
     desc: 'A classic New England inn on the Barre town common, run by the same family for three generations. Breakfast is served in the sugarhouse dining room, and the front porch is the unofficial meeting point for trail travelers heading up into the Wachusett section.',
-    directions: 'At mile 41.8 leave the trail at the Barre Depot parking lot. Follow Exchange Street 0.5 mi uphill to the common. The inn is on the north side.',
+    directions: 'At mile 48.0 leave the trail at the Barre Depot parking lot. Follow Exchange Street 0.5 mi uphill to the common. The inn is on the north side.',
     breakfast: 'Full breakfast with house maple syrup included, 7:00–9:00.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(978) 555-0104', web: 'maplehillinnbarre.example', address: '2 Common St, Barre, MA 01005',
     roomTypes: [ { name: 'Common View Queen', sleeps: 2, rate: 189 }, { name: 'Sugarhouse King', sleeps: 2, rate: 219 }, { name: 'Family Suite', sleeps: 4, rate: 279 } ],
     testimonials: [ { q: 'Warm welcome, big breakfast, and a real map of the climb toward Rutland on the wall.', who: 'Chris & Amara, 4-day trip' } ] },
 
-  { id: 'barrecommon', name: 'Barre Common House', town: 'Barre', type: 'bnb', mile: 42.3, dist: 0.7, rate: 149, rooms: 4, rating: 4.5, reviews: 52, side: 1,
+  { id: 'barrecommon', name: 'Barre Common House', town: 'Barre', type: 'bnb', mile: 48.5, dist: 0.7, rate: 149, rooms: 4, rating: 4.5, reviews: 52, side: 1,
     amen: { breakfast: true, bike: false, laundry: false, pets: true, luggage: false },
     tagline: 'Budget-friendly four-room B&B a block off the common.',
     desc: 'A friendly four-room B&B in a Greek Revival house one block from Barre Common. Simple, clean rooms and a big breakfast. Bikes can be locked on the back porch; no indoor storage.',
-    directions: 'From the Barre Depot lot at mile 42.3, walk up Exchange Street 0.6 mi, right on School Street. Second house on the left.',
+    directions: 'From the Barre Depot lot at mile 48.5, walk up Exchange Street 0.6 mi, right on School Street. Second house on the left.',
     breakfast: 'Full breakfast included, 7:30–9:00.',
     checkin: '3:00 PM', checkout: '10:30 AM', phone: '(978) 555-0139', web: 'barrecommonhouse.example', address: '15 School St, Barre, MA 01005',
     roomTypes: [ { name: 'Standard Queen', sleeps: 2, rate: 149 }, { name: 'Twin Room', sleeps: 2, rate: 149 } ],
     testimonials: [] },
 
-  { id: 'trailside', name: 'Trailside B&B', town: 'Rutland', type: 'bnb', mile: 50.9, dist: 0.1, rate: 215, rooms: 6, rating: 4.9, reviews: 204, side: 1,
+  { id: 'trailside', name: 'Trailside B&B', town: 'Rutland', type: 'bnb', mile: 56.4, dist: 0.1, rate: 215, rooms: 6, rating: 4.9, reviews: 204, side: 1,
     amen: { breakfast: true, bike: true, laundry: true, pets: false, luggage: true },
     tagline: 'Six rooms literally on the trail at the highest point of the route.',
     desc: 'The only inn where you can roll straight off the rail bed into the bike barn. Six rooms in a converted station-keeper\'s house at the top of the Wachusett grade, with sunset views west over the hills you just crossed.',
-    directions: 'At mile 50.9 the inn is on the north side of the trail. Turn in at the white gate.',
+    directions: 'At mile 56.4 the inn is on the north side of the trail. Turn in at the white gate.',
     breakfast: 'Full breakfast included, 6:30–9:00. Packed lunches $14.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(508) 555-0156', web: 'trailsidebb.example', address: '1 Depot Ln, Rutland, MA 01543',
     roomTypes: [ { name: 'Station Queen', sleeps: 2, rate: 215 }, { name: 'Signal King', sleeps: 2, rate: 245 }, { name: 'Summit Suite', sleeps: 4, rate: 325 } ],
     testimonials: [ { q: 'Woke up, opened the door, and was on the trail. Nothing else on the route is this close.', who: 'Sam H., 3-day ride' }, { q: 'Booked as part of a 4-inn trip and everything lined up. Bags arrived before we did.', who: 'Elena V.' } ] },
 
-  { id: 'eaglelake', name: 'Eagle Lake Lodge', town: 'Holden', type: 'inn', mile: 56.5, dist: 1.4, rate: 169, rooms: 10, rating: 4.4, reviews: 97, side: -1,
+  { id: 'eaglelake', name: 'Eagle Lake Lodge', town: 'Holden', type: 'inn', mile: 66.0, dist: 1.4, rate: 169, rooms: 10, rating: 4.4, reviews: 97, side: -1,
     amen: { breakfast: true, bike: true, laundry: false, pets: true, luggage: true },
     tagline: 'Lakeside lodge with a swim dock, a short ride off the trail.',
     desc: 'A ten-room lodge on Eagle Lake, 1.4 miles north of the trail in Holden. Worth the detour for the swim dock and the lakeside dinner service. Shuttle back to the trailhead each morning for guests who would rather not add the miles.',
-    directions: 'At mile 56.5 exit at the Holden Depot lot, north on Main Street 0.9 mi, left on Eagle Lake Road 0.5 mi.',
+    directions: 'At mile 66.0 exit at the Holden Depot lot, north on Main Street 0.9 mi, left on Eagle Lake Road 0.5 mi.',
     breakfast: 'Continental breakfast included, 6:30–9:30. Dinner served Thu–Sun.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(508) 555-0187', web: 'eaglelakelodge.example', address: '400 Eagle Lake Rd, Holden, MA 01520',
     roomTypes: [ { name: 'Lodge Room', sleeps: 2, rate: 169 }, { name: 'Lakefront Cabin', sleeps: 4, rate: 249 } ],
     testimonials: [ { q: 'The swim at the end of a 20-mile day made the detour worth it.', who: 'Noor A.' } ] },
 
-  { id: 'wachusett', name: 'Wachusett Reservoir B&B', town: 'West Boylston', type: 'bnb', mile: 62.7, dist: 1.0, rate: 155, rooms: 3, rating: 4.7, reviews: 39, side: -1,
+  { id: 'wachusett', name: 'Wachusett Reservoir B&B', town: 'West Boylston', type: 'bnb', mile: 72.5, dist: 1.0, rate: 155, rooms: 3, rating: 4.7, reviews: 39, side: -1,
     amen: { breakfast: true, bike: true, laundry: false, pets: false, luggage: true },
     tagline: 'Three quiet rooms overlooking the reservoir causeway.',
     desc: 'A small three-room B&B in a hillside cape above the Wachusett Reservoir. Very quiet, very good coffee, and a view of the Old Stone Church from the breakfast table.',
-    directions: 'At mile 62.7, exit at the Thomas Street crossing. North 0.8 mi, right on Reservoir Ridge. Grey cape at the top of the hill.',
+    directions: 'At mile 72.5, exit at the Thomas Street crossing. North 0.8 mi, right on Reservoir Ridge. Grey cape at the top of the hill.',
     breakfast: 'Full breakfast included, 7:00–9:00.',
     checkin: '4:00 PM', checkout: '10:30 AM', phone: '(508) 555-0122', web: 'wachusettbb.example', address: '9 Reservoir Ridge, West Boylston, MA 01583',
     roomTypes: [ { name: 'Causeway Room', sleeps: 2, rate: 155 }, { name: 'Church View Room', sleeps: 2, rate: 175 } ],
     testimonials: [] },
 
-  { id: 'centralmass', name: 'Central Mass Inn', town: 'West Boylston', type: 'inn', mile: 63.4, dist: 0.3, rate: 175, rooms: 12, rating: 4.6, reviews: 158, side: 1,
+  { id: 'centralmass', name: 'Central Mass Inn', town: 'West Boylston', type: 'inn', mile: 73.3, dist: 0.3, rate: 175, rooms: 12, rating: 4.6, reviews: 158, side: 1,
     amen: { breakfast: true, bike: true, laundry: true, pets: false, luggage: true },
     tagline: 'Twelve-room inn at the trail\'s midpoint with a bike shop next door.',
     desc: 'Right at the practical midpoint of the whole route. Twelve rooms in a 1920s inn on West Boylston\'s main street, sharing a wall with Causeway Cycles. Laundry, secure bike room, and a tavern downstairs.',
-    directions: 'At mile 63.4, the trail crosses West Boylston Street. Turn south 0.3 mi; the inn is on the right, next to the bike shop.',
+    directions: 'At mile 73.3, the trail crosses West Boylston Street. Turn south 0.3 mi; the inn is on the right, next to the bike shop.',
     breakfast: 'Hot breakfast included, 6:30–9:30.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(508) 555-0171', web: 'centralmassinn.example', address: '118 West Boylston St, West Boylston, MA 01583',
     roomTypes: [ { name: 'Classic Queen', sleeps: 2, rate: 175 }, { name: 'Two-Queen Room', sleeps: 4, rate: 215 } ],
     testimonials: [ { q: 'Halfway point, tune-up next door, tavern downstairs. It plans itself.', who: 'Bill K., cyclist' } ] },
 
-  { id: 'nashua', name: 'Nashua River Inn', town: 'Clinton', type: 'hotel', mile: 70.6, dist: 0.5, rate: 162, rooms: 40, rating: 4.4, reviews: 266, side: 1,
+  { id: 'nashua', name: 'Nashua River Inn', town: 'Clinton', type: 'hotel', mile: 82.7, dist: 0.5, rate: 162, rooms: 40, rating: 4.4, reviews: 266, side: 1,
     amen: { breakfast: true, bike: true, laundry: true, pets: true, luggage: true },
     tagline: 'Forty-room riverside hotel in Clinton\'s mill district.',
     desc: 'A full-service hotel in a restored comb-factory building above the Nashua River. Forty rooms, a restaurant, a laundry, and enough capacity for large groups. The Museum of Russian Icons is two blocks away.',
-    directions: 'At mile 70.6 exit at the Clinton Depot. South on High Street 0.4 mi; the inn is the long brick building on the river.',
+    directions: 'At mile 82.7 exit at the Clinton Depot. South on High Street 0.4 mi; the inn is the long brick building on the river.',
     breakfast: 'Breakfast included, 6:00–10:00.',
     checkin: '3:00 PM', checkout: '12:00 PM', phone: '(978) 555-0148', web: 'nashuariverinn.example', address: '250 High St, Clinton, MA 01510',
     roomTypes: [ { name: 'Standard King', sleeps: 2, rate: 162 }, { name: 'Double Queen', sleeps: 4, rate: 182 }, { name: 'River Suite', sleeps: 4, rate: 242 } ],
     testimonials: [ { q: 'Took our group of 14 without blinking. Bikes in a locked room, laundry running by 5 PM.', who: 'Merrimack Valley Walkers' } ] },
 
-  { id: 'assabet', name: 'Assabet Riverhouse', town: 'Hudson', type: 'hotel', mile: 80.5, dist: 0.2, rate: 199, rooms: 28, rating: 4.7, reviews: 189, side: -1,
+  { id: 'assabet', name: 'Assabet Riverhouse', town: 'Hudson', type: 'hotel', mile: 91.9, dist: 0.2, rate: 199, rooms: 28, rating: 4.7, reviews: 189, side: -1,
     amen: { breakfast: false, bike: true, laundry: true, pets: false, luggage: true },
     tagline: 'Boutique mill hotel on the Assabet, steps from downtown Hudson.',
     desc: 'Twenty-eight rooms in a converted shoe mill on the Assabet River, with Hudson\'s restaurants and brewery a short walk away. No breakfast service, but three cafés within two blocks open before 7.',
-    directions: 'At mile 80.5 the trail crosses Main Street in Hudson. The hotel is 0.2 mi south along the river walk.',
+    directions: 'At mile 91.9 the trail crosses Main Street in Hudson. The hotel is 0.2 mi south along the river walk.',
     breakfast: 'Not included. Coffee bar in the lobby; cafés on Main Street from 6:30.',
     checkin: '4:00 PM', checkout: '11:00 AM', phone: '(978) 555-0113', web: 'assabetriverhouse.example', address: '60 Main St, Hudson, MA 01749',
     roomTypes: [ { name: 'Mill Queen', sleeps: 2, rate: 199 }, { name: 'River King', sleeps: 2, rate: 239 } ],
     testimonials: [ { q: 'Hudson was our favorite evening of the trip: dinner, brewery, and a real bed by the river.', who: 'Tom & Grace' } ] },
 
-  { id: 'hopbrook', name: 'Hop Brook Guest House', town: 'Sudbury', type: 'bnb', mile: 88.4, dist: 1.1, rate: 205, rooms: 5, rating: 4.8, reviews: 76, side: 1,
+  { id: 'hopbrook', name: 'Hop Brook Guest House', town: 'Sudbury', type: 'bnb', mile: 99.9, dist: 1.1, rate: 205, rooms: 5, rating: 4.8, reviews: 76, side: 1,
     amen: { breakfast: true, bike: true, laundry: false, pets: false, luggage: true },
     tagline: 'Five rooms in a 1720s farmhouse beside the Sudbury meadows.',
     desc: 'One of the oldest houses in Sudbury, with five low-ceilinged rooms, wide pine floors, and a breakfast room facing the meadows. The Wayside section passes a mile north.',
-    directions: 'At mile 88.4, exit south at the Hop Brook trailhead lot. Follow Dutton Road 1.1 mi; the guest house is on the left just past the brook.',
+    directions: 'At mile 99.9, exit south at the Hop Brook trailhead lot. Follow Dutton Road 1.1 mi; the guest house is on the left just past the brook.',
     breakfast: 'Full breakfast included, 7:00–9:00.',
     checkin: '3:00 PM', checkout: '11:00 AM', phone: '(978) 555-0195', web: 'hopbrookguesthouse.example', address: '311 Dutton Rd, Sudbury, MA 01776',
     roomTypes: [ { name: 'Meadow Room', sleeps: 2, rate: 205 }, { name: 'Keeping Room Suite', sleeps: 3, rate: 255 } ],
     testimonials: [ { q: 'Felt like sleeping in a history book, in the best way.', who: 'Renee L.' } ] },
 
-  { id: 'charlesriver', name: 'Charles River Hotel', town: 'Waltham', type: 'hotel', mile: 99.2, dist: 0.4, rate: 229, rooms: 60, rating: 4.5, reviews: 412, side: 1,
+  { id: 'charlesriver', name: 'Charles River Hotel', town: 'Waltham', type: 'hotel', mile: 111.1, dist: 0.4, rate: 229, rooms: 60, rating: 4.5, reviews: 412, side: 1,
     amen: { breakfast: true, bike: true, laundry: true, pets: true, luggage: true },
     tagline: 'Sixty rooms on Moody Street, one stop from the commuter rail.',
     desc: 'A modern sixty-room hotel on the Charles in Waltham\'s Moody Street restaurant district. The last big-capacity stop before Boston and the easiest place to end a trip by train.',
-    directions: 'At mile 99.2, the trail meets the Charles River path. Follow the river path east 0.4 mi to Moody Street; the hotel is across the bridge.',
+    directions: 'At mile 111.1, the trail meets the Charles River path. Follow the river path east 0.4 mi to Moody Street; the hotel is across the bridge.',
     breakfast: 'Breakfast included, 6:00–10:00.',
     checkin: '3:00 PM', checkout: '12:00 PM', phone: '(781) 555-0160', web: 'charlesriverhotel.example', address: '1 Moody St, Waltham, MA 02453',
     roomTypes: [ { name: 'City King', sleeps: 2, rate: 229 }, { name: 'River Double', sleeps: 4, rate: 259 } ],
     testimonials: [ { q: 'Finished the ride, showered, dinner on Moody Street, train home. Ideal last night.', who: 'Devin P.' } ] },
 
-  { id: 'alewife', name: 'Alewife Lofts', town: 'Cambridge', type: 'rental', mile: 103.1, dist: 0.3, rate: 245, rooms: 6, rating: 4.6, reviews: 58, side: -1,
+  { id: 'alewife', name: 'Alewife Lofts', town: 'Cambridge', type: 'rental', mile: 119.6, dist: 0.3, rate: 245, rooms: 6, rating: 4.6, reviews: 58, side: -1,
     amen: { breakfast: false, bike: true, laundry: true, pets: false, luggage: true },
     tagline: 'Six self-check-in lofts at the eastern end of the line.',
     desc: 'Six apartment-style lofts near Alewife station, a short ride from the trail\'s Boston end. Self check-in, a kitchen in every unit, and the Red Line downstairs for getting anywhere in the city.',
-    directions: 'At mile 103.1 the Fitchburg Cutoff path passes Alewife station. The lofts are the grey building 0.3 mi south on Cambridgepark Drive.',
+    directions: 'At mile 119.6 the Fitchburg Cutoff path passes Alewife station. The lofts are the grey building 0.3 mi south on Cambridgepark Drive.',
     breakfast: 'Self-catered.',
     checkin: '3:00 PM (self check-in)', checkout: '11:00 AM', phone: '(617) 555-0133', web: 'alewifelofts.example', address: '150 Cambridgepark Dr, Cambridge, MA 02140',
     roomTypes: [ { name: 'Studio Loft', sleeps: 2, rate: 245 }, { name: 'One-Bedroom Loft', sleeps: 4, rate: 305 } ],
@@ -852,51 +864,84 @@ const LODGING = [
 
 /* Other map points. kind: parking | bike | food | luggage | trailhead | poi */
 const POIS = [
-  { id: 'th-northampton', kind: 'trailhead', name: 'Northampton Trailhead (Woodmont Rd)', mile: 0, side: 1, note: 'Western terminus. Restrooms, water, 40 spaces.' },
-  { id: 'pk-damon', kind: 'parking', name: 'Damon Road Lot', mile: 1.1, side: -1, note: 'Free lot, 60 spaces. Overnight parking allowed with permit.' },
+  { id: 'th-northampton', kind: 'trailhead', name: 'Northampton Trailhead (Woodmont Rd)', mile: 0.0, side: 1, note: 'Western terminus. Restrooms, water, 40 spaces.' },
   { id: 'bk-northampton', kind: 'bike', name: 'Bridge Street Cycles', mile: 0.6, side: 1, note: 'Rentals, repairs, tubes. Opens 9 AM.' },
   { id: 'fd-northampton', kind: 'food', name: 'Depot Diner', mile: 0.3, side: -1, note: 'Breakfast from 6 AM.' },
   { id: 'lg-northampton', kind: 'luggage', name: 'Valley Bag Shuttle (west hub)', mile: 0.5, side: 1, note: 'Bag pickup 7–9 AM. Serves miles 0–42.' },
-  { id: 'poi-ctriver', kind: 'poi', name: 'Connecticut River Rail Bridge', mile: 2.2, side: -1, note: '1,492-foot 1887 truss bridge. Best view of the trip.' },
-  { id: 'fd-hadley', kind: 'food', name: 'Hadley Farm Stand', mile: 4.0, side: 1, note: 'Cider donuts, fruit, water. Seasonal.' },
-  { id: 'th-amherst', kind: 'trailhead', name: 'Station Road Trailhead', mile: 7.8, side: 1, note: 'Restrooms, 25 spaces.' },
-  { id: 'bk-amherst', kind: 'bike', name: 'Valley Bike Works', mile: 8.3, side: -1, note: 'Full shop. Closed Mondays.' },
-  { id: 'pk-belchertown', kind: 'parking', name: 'Route 9 Lot', mile: 15.3, side: -1, note: 'End of paved Norwottuck section.' },
-  { id: 'fd-belchertown', kind: 'food', name: 'Common Café', mile: 15.5, side: 1, note: 'Sandwiches, coffee. Closes 3 PM.' },
-  { id: 'poi-quabbin', kind: 'poi', name: 'Quabbin Reservoir Overlook', mile: 19.5, side: -1, note: '0.6 mi spur to the Winsor Dam view.' },
-  { id: 'th-ware', kind: 'trailhead', name: 'Ware Depot Trailhead', mile: 24.6, side: 1, note: 'Restrooms, water, 30 spaces.' },
-  { id: 'fd-ware', kind: 'food', name: 'Mill Street Diner', mile: 24.5, side: 1, note: 'Opens 5:30 AM.' },
-  { id: 'poi-gilbertville', kind: 'poi', name: 'Gilbertville Covered Bridge', mile: 30.4, side: 1, note: '1886 covered bridge over the Ware River.' },
-  { id: 'lg-barre', kind: 'luggage', name: 'Valley Bag Shuttle (Barre hub)', mile: 42.0, side: 1, note: 'Transfer point. Serves miles 15–70.' },
-  { id: 'pk-barre', kind: 'parking', name: 'Barre Depot Lot', mile: 42.1, side: -1, note: '35 spaces, portable toilet.' },
-  { id: 'fd-barre', kind: 'food', name: 'Common Table', mile: 42.4, side: -1, note: 'Dinner Wed–Sun.' },
-  { id: 'bk-barre', kind: 'bike', name: 'Barre Bike & Ski', mile: 42.6, side: 1, note: 'Repairs, limited parts.' },
-  { id: 'poi-rutland', kind: 'poi', name: 'Rutland Summit (highest point)', mile: 50.6, side: -1, note: 'About 1,000 ft. Bench and marker.' },
-  { id: 'th-rutland', kind: 'trailhead', name: 'Rutland Depot Trailhead', mile: 51.0, side: -1, note: 'Water, 20 spaces.' },
-  { id: 'pk-holden', kind: 'parking', name: 'Holden Depot Lot', mile: 56.8, side: 1, note: '45 spaces.' },
-  { id: 'fd-holden', kind: 'food', name: 'Depot Pizza', mile: 56.9, side: 1, note: 'Until 9 PM.' },
-  { id: 'poi-wachusett', kind: 'poi', name: 'Old Stone Church & Reservoir', mile: 62.9, side: -1, note: '1892 church on the Wachusett Reservoir shore.' },
-  { id: 'bk-westboylston', kind: 'bike', name: 'Causeway Cycles', mile: 63.4, side: 1, note: 'Next to Central Mass Inn. Tune-ups while you sleep.' },
-  { id: 'lg-westboylston', kind: 'luggage', name: 'Valley Bag Shuttle (central hub)', mile: 63.5, side: -1, note: 'Serves miles 42–104.' },
-  { id: 'fd-westboylston', kind: 'food', name: 'Reservoir Tavern', mile: 63.3, side: -1, note: 'Downstairs at Central Mass Inn.' },
-  { id: 'th-clinton', kind: 'trailhead', name: 'Clinton Depot Trailhead', mile: 70.4, side: -1, note: 'Restrooms, 30 spaces.' },
-  { id: 'fd-clinton', kind: 'food', name: 'High Street Kitchen', mile: 70.7, side: 1, note: 'Lunch and dinner.' },
-  { id: 'poi-berlin', kind: 'poi', name: 'Berlin Orchards', mile: 75.4, side: 1, note: 'Pick-your-own in fall. Cider.' },
-  { id: 'pk-hudson', kind: 'parking', name: 'Hudson Main Street Garage', mile: 80.3, side: 1, note: '3-day overnight rate available.' },
-  { id: 'fd-hudson', kind: 'food', name: 'Rail Trail Brewing', mile: 80.6, side: 1, note: 'Pizza, beer, outdoor seating.' },
-  { id: 'bk-hudson', kind: 'bike', name: 'Assabet Cyclery', mile: 80.1, side: -1, note: 'Full shop, rentals.' },
-  { id: 'th-sudbury', kind: 'trailhead', name: 'Hop Brook Trailhead', mile: 88.4, side: -1, note: 'Boardwalk section starts here.' },
-  { id: 'poi-wayland', kind: 'poi', name: 'Wayland Depot & Freight House', mile: 92.2, side: -1, note: '1881 station, café in season.' },
-  { id: 'pk-weston', kind: 'parking', name: 'Weston Station Lot', mile: 96.0, side: 1, note: 'Commuter rail connection.' },
-  { id: 'fd-waltham', kind: 'food', name: 'Moody Street (30+ restaurants)', mile: 99.3, side: 1, note: 'Every cuisine, most open late.' },
-  { id: 'lg-waltham', kind: 'luggage', name: 'Valley Bag Shuttle (east hub)', mile: 99.0, side: -1, note: 'Final bag delivery point.' },
-  { id: 'th-boston', kind: 'trailhead', name: 'North Point Park (Boston end)', mile: 104, side: 1, note: 'Eastern terminus. Red/Green Line nearby.' }
+  { id: 'poi-ctriver', kind: 'poi', name: 'Connecticut River Rail Bridge', mile: 2.1, side: -1, note: '1,492-foot 1887 truss bridge. Best view of the trip.' },
+  { id: 'fd-hadley', kind: 'food', name: 'Hadley Farm Stand', mile: 3.9, side: 1, note: 'Cider donuts, fruit, water. Seasonal.' },
+  { id: 'th-amherst', kind: 'trailhead', name: 'Station Road Trailhead', mile: 8.0, side: 1, note: 'Restrooms, 25 spaces.' },
+  { id: 'bk-amherst', kind: 'bike', name: 'Valley Bike Works', mile: 8.6, side: -1, note: 'Full shop. Closed Mondays.' },
+  { id: 'fd-belchertown', kind: 'food', name: 'Common Café', mile: 18.1, side: 1, note: 'Sandwiches, coffee. Closes 3 PM.' },
+  { id: 'poi-quabbin', kind: 'poi', name: 'Quabbin Reservoir Overlook', mile: 24.6, side: -1, note: '0.6 mi spur to the Winsor Dam view.' },
+  { id: 'th-ware', kind: 'trailhead', name: 'Ware Depot Trailhead', mile: 32.9, side: 1, note: 'Restrooms, water, 30 spaces.' },
+  { id: 'fd-ware', kind: 'food', name: 'Mill Street Diner', mile: 32.8, side: 1, note: 'Opens 5:30 AM.' },
+  { id: 'poi-gilbertville', kind: 'poi', name: 'Gilbertville Covered Bridge', mile: 38.9, side: 1, note: '1886 covered bridge over the Ware River.' },
+  { id: 'lg-barre', kind: 'luggage', name: 'Valley Bag Shuttle (Barre hub)', mile: 48.2, side: 1, note: 'Transfer point. Serves miles 15–70.' },
+  { id: 'fd-barre', kind: 'food', name: 'Common Table', mile: 48.6, side: -1, note: 'Dinner Wed–Sun.' },
+  { id: 'bk-barre', kind: 'bike', name: 'Barre Bike & Ski', mile: 48.8, side: 1, note: 'Repairs, limited parts.' },
+  { id: 'poi-rutland', kind: 'poi', name: 'Rutland Summit (highest point)', mile: 56.1, side: -1, note: 'About 1,000 ft. Bench and marker.' },
+  { id: 'th-rutland', kind: 'trailhead', name: 'Rutland Depot Trailhead', mile: 56.5, side: -1, note: 'Water, 20 spaces.' },
+  { id: 'fd-holden', kind: 'food', name: 'Depot Pizza', mile: 66.6, side: 1, note: 'Until 9 PM.' },
+  { id: 'poi-wachusett', kind: 'poi', name: 'Old Stone Church & Reservoir', mile: 72.7, side: -1, note: '1892 church on the Wachusett Reservoir shore.' },
+  { id: 'bk-westboylston', kind: 'bike', name: 'Causeway Cycles', mile: 73.3, side: 1, note: 'Next to Central Mass Inn. Tune-ups while you sleep.' },
+  { id: 'lg-westboylston', kind: 'luggage', name: 'Valley Bag Shuttle (central hub)', mile: 73.5, side: -1, note: 'Serves miles 42–104.' },
+  { id: 'fd-westboylston', kind: 'food', name: 'Reservoir Tavern', mile: 73.2, side: -1, note: 'Downstairs at Central Mass Inn.' },
+  { id: 'th-clinton', kind: 'trailhead', name: 'Clinton Depot Trailhead', mile: 82.5, side: -1, note: 'Restrooms, 30 spaces.' },
+  { id: 'fd-clinton', kind: 'food', name: 'High Street Kitchen', mile: 82.8, side: 1, note: 'Lunch and dinner.' },
+  { id: 'poi-berlin', kind: 'poi', name: 'Berlin Orchards', mile: 87.2, side: 1, note: 'Pick-your-own in fall. Cider.' },
+  { id: 'fd-hudson', kind: 'food', name: 'Rail Trail Brewing', mile: 92.0, side: 1, note: 'Pizza, beer, outdoor seating.' },
+  { id: 'bk-hudson', kind: 'bike', name: 'Assabet Cyclery', mile: 91.5, side: -1, note: 'Full shop, rentals.' },
+  { id: 'th-sudbury', kind: 'trailhead', name: 'Hop Brook Trailhead', mile: 99.9, side: -1, note: 'Boardwalk section starts here.' },
+  { id: 'poi-wayland', kind: 'poi', name: 'Wayland Depot & Freight House', mile: 104.4, side: -1, note: '1881 station, café in season.' },
+  { id: 'fd-waltham', kind: 'food', name: 'Moody Street (30+ restaurants)', mile: 111.2, side: 1, note: 'Every cuisine, most open late.' },
+  { id: 'lg-waltham', kind: 'luggage', name: 'Valley Bag Shuttle (east hub)', mile: 110.9, side: -1, note: 'Final bag delivery point.' },
+  { id: 'th-boston', kind: 'trailhead', name: 'North Point Park (Boston end)', mile: 123.5, side: 1, note: 'Eastern terminus. Red/Green Line nearby.' }
 ];
+
+/* Parking and restroom points from the Ride with GPS route author (real places). */
+const ROUTE_POIS = [
+  { id: 'rw-166628774', kind: 'restroom', name: 'Whole Foods', town: 'Hadley', mile: 5.2, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628775', kind: 'parking', name: 'Belchertown parking for MCRT', town: 'Amherst', mile: 9.9, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628776', kind: 'parking', name: 'Parking', town: 'Belchertown', mile: 11.4, side: -1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628777', kind: 'parking', name: 'Parking', town: 'Belchertown', mile: 16.5, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628778', kind: 'restroom', name: 'Town Hall  / Police station', town: 'Belchertown', mile: 17.9, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628779', kind: 'restroom', name: 'Dunkin / Gas station', town: 'Palmer Town', mile: 23.8, side: 1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628780', kind: 'restroom', name: 'Walmart', town: 'Ware', mile: 29.9, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628781', kind: 'restroom', name: 'McDonalds', town: 'Ware', mile: 32.5, side: 1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628782', kind: 'restroom', name: 'Grenville Park (seasonal)', town: 'Ware', mile: 34.0, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628783', kind: 'restroom', name: 'porta potty year round', town: 'Oakham', mile: 50.8, side: 1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628784', kind: 'restroom', name: 'Porta potty year round', town: 'Rutland', mile: 53.9, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628785', kind: 'parking', name: 'rt 122', town: 'Rutland', mile: 53.9, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628786', kind: 'parking', name: 'Powder Mill Pond lot', town: 'Barre', mile: 48.9, side: -1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628787', kind: 'parking', name: 'Blue Trail access', town: 'Hardwick', mile: 39.0, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628788', kind: 'parking', name: 'MCRT Church St parking area', town: 'Ware', mile: 36.1, side: -1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628789', kind: 'parking', name: 'Grenville Park', town: 'Ware', mile: 34.1, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628790', kind: 'parking', name: 'Walmart', town: 'Ware', mile: 29.9, side: -1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628791', kind: 'parking', name: 'Rabbit Run. trailhead', town: 'Belchertown', mile: 23.5, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628792', kind: 'restroom', name: 'Porta potty year round', town: 'Rutland', mile: 57.9, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628793', kind: 'restroom', name: 'Porta potty year round', town: 'Holden', mile: 66.8, side: 1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628794', kind: 'restroom', name: 'Porta potty year round', town: 'Holden', mile: 70.3, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628795', kind: 'parking', name: 'River St trailhead lot', town: 'Holden', mile: 70.3, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628796', kind: 'restroom', name: 'Porta potty year round', town: 'West Boylston', mile: 73.1, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628797', kind: 'parking', name: 'Thomas St lot', town: 'West Boylston', mile: 73.1, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628798', kind: 'restroom', name: 'Porta potty year round', town: 'Sterling', mile: 76.9, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628799', kind: 'restroom', name: 'Clinton Sports Fields Porta Potty', town: 'Clinton', mile: 80.7, side: 1, note: 'Soccer Fields Porta Potties', src: 'route' },
+  { id: 'rw-166628800', kind: 'restroom', name: 'Dunkin Donuts', town: 'Sudbury', mile: 99.9, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628801', kind: 'restroom', name: 'Wayland Police Station', town: 'Wayland', mile: 104.5, side: 1, note: 'Restroom stop noted by the route author.', src: 'route' },
+  { id: 'rw-166628802', kind: 'parking', name: 'Wayland Library', town: 'Wayland', mile: 104.6, side: -1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628803', kind: 'parking', name: 'Main St lot', town: 'Hudson', mile: 92.4, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628804', kind: 'parking', name: 'Concord rd / MCRT parking', town: 'Weston', mile: 107.4, side: -1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628805', kind: 'parking', name: 'Parking on JOnes Rd', town: 'Waltham', mile: 109.3, side: 1, note: 'Trailhead or lot parking.', src: 'route' },
+  { id: 'rw-166628806', kind: 'restroom', name: 'Market Basket', town: 'Waltham', mile: 110.0, side: -1, note: 'Restroom stop noted by the route author.', src: 'route' }
+];
+POIS.push(...ROUTE_POIS);
 
 const POI_KINDS = {
   lodging:   { label: 'Inns, B&Bs & hotels', color: '#14532D' },
   trailhead: { label: 'Trailheads',           color: '#4E8C5F' },
   parking:   { label: 'Parking',              color: '#2F5F8A' },
+  restroom:  { label: 'Restrooms & water',    color: '#3C8FA3' },
   bike:      { label: 'Bike & supply shops',  color: '#C08F2E' },
   food:      { label: 'Restaurants',          color: '#B85C38' },
   luggage:   { label: 'Luggage transfer',     color: '#6D4C8E' },
@@ -909,24 +954,24 @@ const TYPE_LABEL = { bnb: 'B&B', inn: 'Inn', hotel: 'Hotel', rental: 'Vacation r
    per-person package price (double occupancy). Day counts and daily
    mileage are computed from the engine so they always match the itinerary. */
 const TOURS = [
-  { id: 'weekend', name: 'Norwottuck Weekend', route: 'Northampton to Ware', start: 'northampton', end: 'ware', mpd: 13, mode: 'walk', rating: 'Easy', price: 495, single: 120, bikeRental: 65, meals: '1 breakfast · 2 packed lunches', groupMax: 14, scene: 'walker',
-    overview: 'Two days on the flattest, best-loved miles of the trail: across the Connecticut River on the 1887 rail bridge, through Hadley farm stands and Amherst to the Belchertown common, then down the Ware River Valley to a mill-town lodge with a laundry and a diner that opens at 5:30.',
+  { id: 'weekend', name: 'Norwottuck Weekend', route: 'Northampton to Belchertown', start: 'northampton', end: 'belchertown', mpd: 10, mode: 'walk', rating: 'Easy', price: 495, single: 120, bikeRental: 65, meals: '1 breakfast · 2 packed lunches', groupMax: 14, scene: 'walker',
+    overview: 'Two days on the flattest, best-loved miles of the trail: across the Connecticut River on the 1887 rail bridge, through Hadley farm stands to a farmhouse inn in Amherst, then on to the Belchertown common where the paved miles end.',
     highlights: ['1,492-foot Connecticut River rail bridge', 'Hadley farm stands and cider donuts', 'A Belchertown B&B whose innkeeper draws you the map east', 'Quabbin Reservoir overlook spur'],
     departures: ['2026-09-19', '2026-09-26', '2026-10-10', '2026-10-17'],
     testimonial: { q: 'Exactly the right first trail trip. We never touched our bags and breakfast was waiting both mornings.', who: 'The Okafor family, Norwottuck Weekend' } },
-  { id: 'highlands', name: 'Highlands to the Harbor', route: 'Barre to Boston', start: 'barre', end: 'boston', mpd: 21, mode: 'bike', rating: 'Moderate', price: 1095, single: 240, bikeRental: 120, meals: '2 breakfasts · 3 packed lunches · 1 dinner', groupMax: 14, scene: 'rider',
+  { id: 'highlands', name: 'Highlands to the Harbor', route: 'Barre to Boston', start: 'barre', end: 'boston', mpd: 25, mode: 'bike', rating: 'Active', price: 1095, single: 240, bikeRental: 120, meals: '2 breakfasts · 3 packed lunches · 1 dinner', groupMax: 14, scene: 'rider',
     overview: 'Start on Barre Common, climb to the trail\'s high point in Rutland, coast past the Wachusett Reservoir and down river valleys through Clinton and Hudson, then follow the Wayside miles and the Charles into the city.',
     highlights: ['Rutland summit, the highest point on the route', 'Old Stone Church on the Wachusett Reservoir', 'Dinner and a brewery in Hudson\'s mill downtown', 'Finish at North Point Park with the Red Line home'],
     departures: ['2026-09-25', '2026-10-09', '2026-10-16'],
     testimonial: { q: 'Halfway point, tune-up next door, tavern downstairs. It plans itself.', who: 'Bill K., Highlands to the Harbor' } },
-  { id: 'fiveday', name: 'Five-Day Trail Walk', route: 'Northampton to Hudson', start: 'northampton', end: 'hudson', mpd: 18, mode: 'walk', rating: 'Active', price: 1595, single: 360, bikeRental: 0, meals: '4 breakfasts · 5 packed lunches · 2 dinners', groupMax: 12, scene: 'walker',
-    overview: 'Eighty miles on foot at a comfortable pace, with a real bed, a real breakfast, and your bags waiting every night. Farmhouse inns, mill villages, the Wachusett highlands, and river towns.',
+  { id: 'fiveday', name: 'Five-Day Trail Walk', route: 'Northampton to Hudson', start: 'northampton', end: 'hudson', mpd: 20, mode: 'walk', rating: 'Active', price: 1595, single: 360, bikeRental: 0, meals: '4 breakfasts · 5 packed lunches · 2 dinners', groupMax: 12, scene: 'walker',
+    overview: 'Ninety miles on foot at a steady pace, with a real bed, a real breakfast, and your bags waiting every night. Farmhouse inns, mill villages, the Wachusett highlands, and river towns.',
     highlights: ['A 1790 farmhouse inn on the Hadley fields', 'Gilbertville covered bridge', 'Sunset from the station house at Rutland summit', 'Swim dock at Eagle Lake after the longest day'],
     departures: ['2026-09-21', '2026-10-05', '2026-10-12'],
     testimonial: { q: 'Laundry after two days of stone dust. That is all you need to know.', who: 'Jen T., Five-Day Trail Walk' } },
-  { id: 'endtoend', name: 'Mass Central End-to-End', route: 'Northampton to Boston', start: 'northampton', end: 'boston', mpd: 22, mode: 'bike', rating: 'Active', price: 1795, single: 390, bikeRental: 165, meals: '4 breakfasts · 5 packed lunches · 2 dinners', groupMax: 14, scene: 'rider',
-    overview: 'The whole trail, river to harbor, in five days by bike. Every night at an inn that knows what a 20-mile day feels like, every morning with your bags already on the van.',
-    highlights: ['All 104 miles, Connecticut River to Boston Harbor', 'Roll straight off the rail bed into the bike barn at Trailside B&B', 'Maple syrup breakfast on Barre Common', 'Moody Street dinner and a train home from Waltham'],
+  { id: 'endtoend', name: 'Mass Central End-to-End', route: 'Northampton to Boston', start: 'northampton', end: 'boston', mpd: 26, mode: 'bike', rating: 'Active', price: 1795, single: 390, bikeRental: 165, meals: '4 breakfasts · 5 packed lunches · 2 dinners', groupMax: 14, scene: 'rider',
+    overview: 'The whole route, river to harbor, in five days by bike with about 4,650 feet of climbing. Every night at an inn that knows what a 20-mile day feels like, every morning with your bags already on the van.',
+    highlights: ['All 123 miles of the current route, Connecticut River to Boston Harbor', 'Roll straight off the rail bed into the bike barn at Trailside B&B', 'Maple syrup breakfast on Barre Common', 'Moody Street dinner and a train home from Waltham'],
     departures: ['2026-09-20', '2026-10-04', '2026-10-11', '2026-10-18'],
     testimonial: { q: 'Booked as part of a 4-inn trip and everything lined up. Bags arrived before we did.', who: 'Elena V., Mass Central End-to-End' } }
 ];
@@ -941,6 +986,8 @@ const TOUR_INCLUDES = [
 ];
 
 const RESOURCES = [
+  { name: 'MCRT full route on Ride with GPS', desc: '123.5 mi, +4,779 ft westbound. The turn-by-turn alignment this site\'s mileage is based on.', url: 'https://ridewithgps.com/routes/53812869' },
+  { name: 'RN2B route (Ride Northampton to Boston)', desc: 'The Fall 2024 group-ride alignment recommended on MassTrailTracker.', url: 'https://ridewithgps.com/routes/47996539' },
   { name: 'MassTrailTracker.com', desc: 'Interactive trail map and status by segment. The reference map behind this site.', url: 'https://masstrailtracker.com' },
   { name: 'Mass Central Rail Trail Coalition', desc: 'Trail news, section openings, volunteer days.', url: 'https://masscentralrailtrail.org' },
   { name: 'Wachusett Greenways', desc: 'Maintains the Rutland–West Boylston miles. Trail conditions.', url: 'https://www.wachusettgreenways.org' },
@@ -1213,6 +1260,11 @@ function requestBand(tourId) {
     : `<form data-act="request-submit" novalidate><label class="sr" for="rq-tour">Tour</label><select id="rq-tour">${TOURS.map(t => `<option value="${t.id}"${t.id === tourId ? ' selected' : ''}>${esc(t.name)} · ${esc(t.route)}</option>`).join('')}<option value="all">All tours (full catalog)</option></select><label class="sr" for="rq-email">Email</label><input id="rq-email" type="email" placeholder="you@example.com" required><button class="btn btn-primary" type="submit">Request Free Itinerary ${icon('arrow')}</button><span class="small" style="color:rgba(255,255,255,.6)">No spam. One email with the PDF, then occasional trail news you can leave any time.</span></form>`}
   </div>`;
 }
+function gainBetween(a, b) {
+  const lo = Math.min(a, b), hi = Math.max(a, b); let g = 0;
+  for (let i = 1; i < TOWNS.length; i++) { const p = TOWNS[i - 1], t = TOWNS[i]; const s0 = Math.max(lo, p.mile), e0 = Math.min(hi, t.mile); if (e0 > s0) g += t.gain * (e0 - s0) / (t.mile - p.mile); }
+  return Math.round(g);
+}
 function tripMiles(t) { return Math.abs(town(t.end).mile - town(t.start).mile); }
 function hoursFor(miles, mode) { return Math.round(miles / MPH[mode] * 2) / 2; }
 function tripTitle(t) { return `Your ${t.days.length}-Day Mass Central Rail Trail Trip`; }
@@ -1334,7 +1386,7 @@ function animateRibbon(t) {
 }
 
 /* ---------- schematic map ---------- */
-const MAP = { W: 1100, H: 560, x0: 50, scale: 1000 / 104, dy: 150 };
+const MAP = { W: 1100, H: 560, x0: 50, scale: 1000 / TRAIL.length, dy: 150 };
 const mx = m => MAP.x0 + m * MAP.scale;
 function my(m) {
   for (let i = 0; i < TOWNS.length - 1; i++) {
@@ -1356,9 +1408,10 @@ const PIN_ICON = {
   food: '<path d="M-3.5 -6v12M-1 -6v12M-6 -6v4a2.5 2.5 0 0 0 5 0v-4M3 -6c2 0 3 2 3 5v7" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
   luggage: '<rect x="-6" y="-3" width="12" height="9" rx="1.5" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M-3 -3v-3h6v3" stroke="#fff" stroke-width="1.8" fill="none"/>',
   trailhead: '<path d="M-4 -6v12M-4 -6h8l-2 3 2 3h-8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linejoin="round"/>',
-  poi: '<path d="M0 -6.5 L1.9 -2 L6.5 -1.6 L3 1.6 L4 6.3 L0 3.8 L-4 6.3 L-3 1.6 L-6.5 -1.6 L-1.9 -2 Z" fill="#fff"/>'
+  poi: '<path d="M0 -6.5 L1.9 -2 L6.5 -1.6 L3 1.6 L4 6.3 L0 3.8 L-4 6.3 L-3 1.6 L-6.5 -1.6 L-1.9 -2 Z" fill="#fff"/>',
+  restroom: '<path d="M0 -6.5 C 3 -2.5, 5 0, 5 2.2 A5 5 0 0 1 -5 2.2 C -5 0, -3 -2.5, 0 -6.5 Z" fill="#fff"/>'
 };
-const PIN_OFF = { lodging: 22, trailhead: 16, parking: 40, bike: 56, food: 40, luggage: 58, poi: 18 };
+const PIN_OFF = { lodging: 22, trailhead: 16, parking: 40, bike: 56, food: 40, luggage: 58, poi: 18, restroom: 30 };
 
 function mapSVGInner(opts) {
   const f = opts.filters; const trip = opts.showTrip ? state.trip : null;
@@ -1366,14 +1419,14 @@ function mapSVGInner(opts) {
   let s = `<rect width="${MAP.W}" height="${MAP.H}" fill="${MC.bg}"/>`;
   s += `<g fill="${MC.land}">` + [[130, 90, 150, 44], [430, 460, 180, 40], [720, 70, 130, 40], [960, 470, 120, 34], [300, 500, 200, 30], [620, 480, 150, 30], [980, 100, 100, 36]].map(a => `<ellipse cx="${a[0]}" cy="${a[1]}" rx="${a[2]}" ry="${a[3]}"/>`).join('') + '</g>';
   s += `<path d="M${mx(2.2) - 8} 0 C ${mx(2.2) + 14} 120, ${mx(2.2) - 18} 300, ${mx(2.2) + 4} ${MAP.H}" stroke="${MC.water}" stroke-width="16" fill="none"/><text x="${mx(2.2) + 14}" y="60" class="mile-label" font-size="11">Connecticut River</text>`;
-  s += `<ellipse cx="${mx(23)}" cy="215" rx="100" ry="58" fill="${MC.water}"/><text x="${mx(23)}" y="219" class="mile-label" text-anchor="middle" font-size="12">Quabbin Reservoir</text>`;
-  s += `<ellipse cx="${mx(65.5)}" cy="236" rx="46" ry="26" fill="${MC.water}"/><text x="${mx(65.5)}" y="240" class="mile-label" text-anchor="middle" font-size="10">Wachusett Reservoir</text>`;
-  s += `<path d="M${mx(95.5)} ${MAP.H} C ${mx(98)} 420, ${mx(101)} 400, ${mx(104) + 40} 395" stroke="${MC.water}" stroke-width="12" fill="none"/><text x="${mx(98)}" y="470" class="mile-label" font-size="11">Charles River</text>`;
-  s += `<path d="${trailPath(0, 104)}" stroke="${MC.halo}" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
-  s += `<path d="${trailPath(0, 104)}" stroke="${MC.trail}" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
-  [[25, 30], [33, 37], [75, 78]].forEach(p => { s += `<path d="${trailPath(p[0], p[1])}" stroke="${MC.connector}" stroke-width="4.5" fill="none" stroke-dasharray="7 6" stroke-linecap="round"/>`; });
+  s += `<ellipse cx="${mx(27)}" cy="215" rx="100" ry="58" fill="${MC.water}"/><text x="${mx(27)}" y="219" class="mile-label" text-anchor="middle" font-size="12">Quabbin Reservoir</text>`;
+  s += `<ellipse cx="${mx(76)}" cy="236" rx="46" ry="26" fill="${MC.water}"/><text x="${mx(76)}" y="240" class="mile-label" text-anchor="middle" font-size="10">Wachusett Reservoir</text>`;
+  s += `<path d="M${mx(TRAIL.length - 9)} ${MAP.H} C ${mx(TRAIL.length - 6)} 420, ${mx(TRAIL.length - 3)} 400, ${mx(TRAIL.length) + 40} 395" stroke="${MC.water}" stroke-width="12" fill="none"/><text x="${mx(TRAIL.length - 6)}" y="470" class="mile-label" font-size="11">Charles River</text>`;
+  s += `<path d="${trailPath(0, TRAIL.length)}" stroke="${MC.halo}" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<path d="${trailPath(0, TRAIL.length)}" stroke="${MC.trail}" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
+  [[33.5, 38.5], [41, 44], [87, 89.5]].forEach(p => { s += `<path d="${trailPath(p[0], p[1])}" stroke="${MC.connector}" stroke-width="4.5" fill="none" stroke-dasharray="7 6" stroke-linecap="round"/>`; });
   if (trip) { const a = town(trip.start).mile, b = town(trip.end).mile; s += `<path d="${trailPath(Math.min(a, b), Math.max(a, b))}" stroke="${MC.route}" stroke-width="9" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/>`; }
-  for (let m = 0; m <= 100; m += 10) { const x = mx(m), y = my(m); s += `<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y + 8}" stroke="${MC.trail}" stroke-width="2"/><text x="${x}" y="${y + 22}" class="mile-label" text-anchor="middle">mi ${m}</text>`; }
+  for (let m = 0; m <= TRAIL.length; m += 10) { const x = mx(m), y = my(m); s += `<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y + 8}" stroke="${MC.trail}" stroke-width="2"/><text x="${x}" y="${y + 22}" class="mile-label" text-anchor="middle">mi ${m}</text>`; }
   TOWNS.forEach((t, i) => {
     const x = mx(t.mile), y = t.y + MAP.dy; const up = i % 2 === 0;
     s += `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="${MC.trail}" stroke-width="2"/><text x="${x}" y="${up ? y - 15 : y + 34}" class="town-label" text-anchor="middle">${esc(t.name.replace(' (North Point)', ''))}</text>`;
@@ -1404,13 +1457,14 @@ function mapCardHTML(sel) {
       <p class="story" style="font-size:.95rem">${esc(l.tagline)}</p>
       ${badgesHTML(l, 3)}
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">${availHTML(l.id, date)}<span class="from">from ${money(l.rate)}</span></div>
-      <div class="card-actions"><button class="btn btn-forest btn-sm" data-act="add-trip" data-id="${l.id}">Add to Trip</button><a class="btn btn-outline btn-sm" href="#stay/${l.id}">View ${TYPE_WORD[l.type]}</a></div></div></div>`;
+      <div class="card-actions"><button class="btn btn-forest btn-sm" data-act="add-trip" data-id="${l.id}">Add to Trip</button><a class="btn btn-outline btn-sm" href="#stay/${l.id}">View ${TYPE_WORD[l.type]}</a></div><a class="small" href="https://${l.web}" target="_blank" rel="noopener">Visit ${esc(l.web)}</a></div></div>`;
   }
   const p = POIS.find(x => x.id === sel.id); if (!p) return '';
   const k = POI_KINDS[p.kind];
   return `<div class="map-card"><button class="close" data-act="map-card-close" aria-label="Close">×</button><div class="card-body">
     <span class="tag" style="background:${k.color}22;color:${k.color};align-self:flex-start">${k.label}</span><h3>${esc(p.name)}</h3><p class="small">${esc(p.note)}</p>
-    <div class="meta"><span>Trail mile <b class="num">${p.mile}</b></span><span>${esc(townAtMile(p.mile).name)}</span></div></div></div>`;
+    <div class="meta"><span>Trail mile <b class="num">${p.mile}</b></span><span>${esc(p.town || townAtMile(p.mile).name)}</span></div>
+    <div class="small" style="display:flex;gap:12px;flex-wrap:wrap">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Website</a>` : '<span class="muted">Website link added at onboarding</span>'}<a href="${TRAIL.mapUrl}" target="_blank" rel="noopener">Open in MassTrailTracker</a>${p.src === 'route' ? '<span class="muted">Point from the Ride with GPS route</span>' : ''}</div></div></div>`;
 }
 function mapHTML(opts) {
   const legend = Object.keys(POI_KINDS).map(k => `<label><input type="checkbox" data-mapf="${k}" ${opts.filters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('');
@@ -1476,10 +1530,10 @@ function secHero() {
   <section class="hero"><div class="hero-art" style="background-image:${scene('hero', 'rider')}"></div>
     <div class="wrap hero-in">
       <div>
-        <p class="eyebrow" style="color:var(--gold-light)">Northampton to Boston · 104 miles · inn to inn</p>
+        <p class="eyebrow" style="color:var(--gold-light)">Northampton to Boston · ${TRAIL.length} miles · inn to inn</p>
         <h1>Plan your Mass Central Rail Trail trip. <em>Discover memorable places to stay along the way.</em></h1>
         <p class="hero-lede">Choose your pace and we'll map each day's miles, introduce you to the inns and B&amp;Bs near every overnight stop, move your bags, and book the whole trip in one checkout.</p>
-        <div class="hero-stats"><div><b class="num">104</b><span>trail miles</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b class="num">${TOURS.length}</b><span>inn-to-inn tours</span></div><div><b>1</b><span>checkout</span></div></div>
+        <div class="hero-stats"><div><b class="num">${TRAIL.length}</b><span>route miles</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b class="num">${TOURS.length}</b><span>inn-to-inn tours</span></div><div><b>1</b><span>checkout</span></div></div>
         <p style="margin-top:22px;color:rgba(255,255,255,.85)">Prefer a ready-made trip? <a href="#tours" style="color:#fff;font-weight:700">See the inn-to-inn tours</a> with fall departures, or <a href="#tours" style="color:#fff;font-weight:700">request a free itinerary</a>.</p>
       </div>
       ${plannerForm(false)}
@@ -1490,7 +1544,7 @@ function secMapPreview() {
   const featured = ['trailside', 'maplehill', 'norwottuck', 'paradise'].map(byId);
   const exampleBag = 3 * BAG_RATE;
   return `<section class="section"><div class="wrap">
-    <div class="section-head"><div><p class="eyebrow">Interactive trail map</p><h2>Every mile, every inn, every place to refill a bottle</h2><p>Built on the MassTrailTracker.com trail reference. Tap a pin for details, drag to explore, and add a stay straight from the map.</p></div><a class="btn btn-outline" href="#map">Open the full map</a></div>
+    <div class="section-head"><div><p class="eyebrow">Interactive trail map</p><h2>Every mile, every inn, every place to refill a bottle</h2><p>Built on the MassTrailTracker.com trail reference, with mileage from the current best route on Ride with GPS. Parking and restroom pins come from the route itself. Tap a pin for details and a link to its website.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-outline" href="#map">Open the full map</a><a class="btn btn-light" href="${TRAIL.mapUrl}" target="_blank" rel="noopener">${icon('map')} MassTrailTracker</a></div></div>
     ${mapHTML({ filters: state.ui.mapFilters, showTrip: true, cls: 'map-preview' })}
   </div></section>`;
 }
@@ -1500,7 +1554,7 @@ function secHow() {
   return `<section class="section" style="background:var(--paper)"><div class="wrap">
     <div class="section-head"><div><p class="eyebrow">How it works</p><h2>Five steps from idea to booked trip</h2></div></div>
     <div class="steps">
-      ${[['Choose your route', 'Any two points on the trail, in either direction. A weekend or the whole 104 miles.'], ['Set your daily mileage', 'Walking 10 to 15, cycling 20 to 30. We place your overnight stops at real towns with real beds.'], ['Meet your inns', 'Each stop introduces the inns and B&amp;Bs nearby, with live availability. Swap any night for another stay.'], ['Add luggage transfer', 'Your bags travel by van from tonight\'s inn to tomorrow\'s while you travel by trail.'], ['Book the whole trip', 'One checkout, one confirmation, several independently owned inns.']].map((s, i) => `<div class="step"><div class="n">${i + 1}</div><div><h3>${s[0]}</h3><p>${s[1]}</p></div></div>`).join('')}
+      ${[['Choose your route', 'Any two points on the trail, in either direction. A weekend or the whole ${TRAIL.length} miles.'], ['Set your daily mileage', 'Walking 10 to 15, cycling 20 to 30. We place your overnight stops at real towns with real beds.'], ['Meet your inns', 'Each stop introduces the inns and B&amp;Bs nearby, with live availability. Swap any night for another stay.'], ['Add luggage transfer', 'Your bags travel by van from tonight\'s inn to tomorrow\'s while you travel by trail.'], ['Book the whole trip', 'One checkout, one confirmation, several independently owned inns.']].map((s, i) => `<div class="step"><div class="n">${i + 1}</div><div><h3>${s[0]}</h3><p>${s[1]}</p></div></div>`).join('')}
     </div>
   </div></section>`;
 }
@@ -1562,7 +1616,7 @@ function secHeroB() {
     <div class="wrap hero-in-b">
       <p class="eyebrow" style="color:var(--gold-light)">Tonight in ${esc(lead.town)} · trail mile ${lead.mile}</p>
       <h1>The trail brings you to the door. <em>The inn does the rest.</em></h1>
-      <p class="hero-lede">Walk or ride the Mass Central Rail Trail for a weekend or all 104 miles. Every night: a porch, a breakfast, and a host who knows the next twenty miles. Tell us your pace and we'll introduce you to the inns.</p>
+      <p class="hero-lede">Walk or ride the Mass Central Rail Trail for a weekend or all ${TRAIL.length} miles. Every night: a porch, a breakfast, and a host who knows the next twenty miles. Tell us your pace and we'll introduce you to the inns.</p>
       <div class="hero-actions"><a class="btn btn-primary" href="#plan">Plan my trail trip ${icon('arrow')}</a><a class="btn btn-light" href="#stays">Meet the inns</a><a class="btn btn-light" href="#tours">Fall departures</a></div>
     </div></section>
   <section class="planner-strip"><div class="wrap">${plannerForm(false)}</div></section>`;
@@ -1587,8 +1641,8 @@ function secInnsB() {
 function secHeroC() {
   const chips = Object.keys(POI_KINDS).map(k => `<label class="chip${state.ui.mapFilters.has(k) ? ' on' : ''}"><input type="checkbox" class="sr" data-mapf="${k}" ${state.ui.mapFilters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('');
   return `<section class="hero-c"><div class="wrap">
-    <div class="hero-c-top"><div><p class="eyebrow">Mass Central Rail Trail · Northampton → Boston · 104 mi</p><h1>Plan your trail trip. Discover memorable places to stay along the way.</h1><p class="hero-lede">Set your pace and we'll map each day's miles, introduce you to the inns near every stop, and move your bags.</p></div>
-      <div class="stats-strip"><div><b class="num">104</b><span>trail miles</span></div><div><b class="num">${LODGING.length}</b><span>stays</span></div><div><b class="num">${TOURS.length}</b><span>tours</span></div><div><b class="num">${SECTIONS.length}</b><span>sections</span></div></div></div>
+    <div class="hero-c-top"><div><p class="eyebrow">Mass Central Rail Trail · Northampton → Boston · ${TRAIL.length} mi</p><h1>Plan your trail trip. Discover memorable places to stay along the way.</h1><p class="hero-lede">Set your pace and we'll map each day's miles, introduce you to the inns near every stop, and move your bags.</p></div>
+      <div class="stats-strip"><div><b class="num">${TRAIL.length}</b><span>route miles</span></div><div><b class="num">${LODGING.length}</b><span>stays</span></div><div><b class="num">${TOURS.length}</b><span>tours</span></div><div><b class="num">${SECTIONS.length}</b><span>sections</span></div></div></div>
     <div class="hero-c-map">${mapHTML({ filters: state.ui.mapFilters, showTrip: true, cls: 'map-hero', noLegend: true })}<div class="planner-float">${plannerForm(false)}</div></div>
     <div class="map-toolbar" style="margin-top:12px">${chips}<a href="#map" class="chip" style="margin-left:auto;text-decoration:none">${icon('map')} Full map</a></div>
   </div></section>`;
@@ -1618,10 +1672,10 @@ function secHeroD() {
   return `
   <section class="hero hero-d"><div class="hero-art" style="background-image:${scene('hero-d', 'rider')}"></div>
     <div class="wrap hero-in-d">
-      <p class="eyebrow" style="color:var(--gold-light)">Mass Central Rail Trail · Northampton to Boston · 104 miles</p>
+      <p class="eyebrow" style="color:var(--gold-light)">Mass Central Rail Trail · Northampton to Boston · ${TRAIL.length} miles</p>
       <h1>Ride the old line. <em>Sleep at the inns it built.</em></h1>
       <p class="hero-lede">Plan a multi-day walk or ride, meet the B&amp;Bs and inns near every overnight stop, add luggage transfer, and book the whole trip in one checkout.</p>
-      <div class="hero-stats"><div><b class="num">104</b><span>trail miles</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b class="num">${TOURS.length}</b><span>inn-to-inn tours</span></div><div><b>1</b><span>checkout</span></div></div>
+      <div class="hero-stats"><div><b class="num">${TRAIL.length}</b><span>route miles</span></div><div><b class="num">${TRAIL.gainEast.toLocaleString('en-US')}</b><span>ft of climb</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b>1</b><span>checkout</span></div></div>
     </div>
   </section>
   <section class="board-band"><div class="wrap">${plannerFormD()}</div></section>`;
@@ -1637,19 +1691,26 @@ function secToursD() {
     </tbody></table></div>
   </div></section>`;
 }
+function secCircle() {
+  return `<section class="section" style="background:var(--paper)"><div class="wrap">
+    <div class="circle"><div><p class="eyebrow">The Trail Circle</p><h2>Stay unique. Stay loyal. Stay in the Circle.</h2><p class="muted" style="margin-top:8px;max-width:52ch">Every night at a member inn or B&amp;B counts as a stay. Book here and it's logged for you; walk in off the trail and scan the card at the desk. No password, no app.</p></div>
+    <div class="circle-steps">${[['1', 'Stay at a member inn', 'Any night, any trip, booked here or at the door.'], ['2', 'Collect five stays', 'Stays never expire. Check your progress from the email we send after each one.'], ['3', 'Earn a gift certificate', '$75 for five stays, $125 for five different inns. Good at any member property for five years.']].map(x => `<div><b class="n">${x[0]}</b><h3>${x[1]}</h3><p>${x[2]}</p></div>`).join('')}</div></div>
+  </div></section>`;
+}
+const isCircleMember = l => l.type === 'bnb' || l.type === 'inn' || !!l.local;
 function viewHome() {
-  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secResources() + secJoin();
-  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secResources() + secJoin();
-  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secResources() + secJoin();
-  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secResources() + secJoin();
+  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
+  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
+  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
+  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secCircle() + secResources() + secJoin();
 }
 
 function viewMap() {
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <div class="section-head" style="margin-bottom:14px"><div><p class="eyebrow">Interactive trail map</p><h2>Mass Central Rail Trail, Northampton to Boston</h2><p>Drag to move, use + and − to zoom. Tap any pin for details. ${state.trip ? 'Your planned route is highlighted with a marker at each night\'s stay.' : 'Plan a trip and your route and overnight stops appear here.'}</p></div>${state.trip ? '<a class="btn btn-outline" href="#plan">View itinerary</a>' : '<a class="btn btn-primary" href="#plan">Plan a trip</a>'}</div>
-    <div class="map-toolbar">${Object.keys(POI_KINDS).map(k => `<label class="chip${state.ui.mapFilters.has(k) ? ' on' : ''}"><input type="checkbox" class="sr" data-mapf="${k}" ${state.ui.mapFilters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('')}</div>
+    <div class="map-toolbar">${Object.keys(POI_KINDS).map(k => `<label class="chip${state.ui.mapFilters.has(k) ? ' on' : ''}"><input type="checkbox" class="sr" data-mapf="${k}" ${state.ui.mapFilters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('')}<a class="chip" href="${TRAIL.mapUrl}" target="_blank" rel="noopener" style="margin-left:auto;text-decoration:none">${icon('map')} Open in MassTrailTracker</a><a class="chip" href="${TRAIL.routeUrl}" target="_blank" rel="noopener" style="text-decoration:none">${icon('bike')} Route on Ride with GPS</a></div>
     ${mapHTML({ filters: state.ui.mapFilters, showTrip: true, cls: 'map-tall', noLegend: true })}
-    <p class="small muted" style="margin-top:10px">Schematic map for the prototype. Production uses the MassTrailTracker.com basemap with GPS-accurate trail geometry, mile markers, and property coordinates.</p>
+    <p class="small muted" style="margin-top:10px">Schematic map for the prototype. Mileage follows the current best route (${TRAIL.length} mi, +${TRAIL.gainEast.toLocaleString('en-US')} ft eastbound). Parking and restroom pins are real points from the Ride with GPS route; lodging, shops and restaurants are illustrative. Production uses the MassTrailTracker.com basemap with its paved, stone-dust, on-road and under-construction status layers, GPS-accurate geometry, and a website link on every pin.</p>
   </div></section>`;
 }
 
@@ -1695,7 +1756,7 @@ function viewPlan() {
     const lead = chosen || near[0]; const alts = near.filter(l => l !== lead); const open = state.ui.openAlts.has(d.n);
     return `<article class="day" id="day-${d.n}" data-act="walker" data-day="${d.n}">
       <div class="day-head"><div class="day-n"><small>Day ${d.n}</small>${fmt(d.date, 'long')}</div>
-        <div><div class="day-route">${esc(from.name.split(' (')[0])}<span class="arrow">→</span>${esc(to.name.split(' (')[0])}</div><div class="day-stats"><span><b class="num">${r1(dm)} miles</b></span><span>~<b class="num">${hoursFor(dm, t.mode)} hrs</b> ${t.mode === 'bike' ? 'riding' : 'walking'}</span><span>${esc(secs)}</span><span>Mile <b class="num">${r1(d.fromMile)}</b> → <b class="num">${r1(d.toMile)}</b></span></div></div>
+        <div><div class="day-route">${esc(from.name.split(' (')[0])}<span class="arrow">→</span>${esc(to.name.split(' (')[0])}</div><div class="day-stats"><span><b class="num">${r1(dm)} miles</b></span><span>+<b class="num">${gainBetween(d.fromMile, d.toMile)} ft</b> climb</span><span>~<b class="num">${hoursFor(dm, t.mode)} hrs</b> ${t.mode === 'bike' ? 'riding' : 'walking'}</span><span>${esc(secs)}</span><span>Mile <b class="num">${r1(d.fromMile)}</b> → <b class="num">${r1(d.toMile)}</b></span></div></div>
         <div class="small" style="text-align:right">${chosen ? `<span class="tag ochre">${icon('moon')} Night ${d.n}: ${esc(chosen.name)}</span>` : isLast ? '<span class="tag">Trip ends here</span>' : '<span class="tag clay">Choose a stay</span>'}</div></div>
       <div class="day-body"><h4>${isLast ? `Your trip ends in ${esc(to.name.split(' (')[0])} · mile ${r1(d.toMile)}` : `Where you'll sleep · ${esc(to.name.split(' (')[0])} · mile ${r1(d.toMile)}`}</h4>
         ${lead ? tonightBlock(d, lead, t, isLast, open, alts.length) : `<div class="notice">No participating lodging within 4 miles of this stop yet. Adjust your daily mileage or <a href="#join">tell an innkeeper about the network</a>.</div>`}
@@ -1705,7 +1766,7 @@ function viewPlan() {
   }).join('');
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <p class="eyebrow">Trip planner</p><h2>${tripTitle(t)}</h2>
-    <p class="muted" style="margin-top:6px">${esc(town(t.start).name)} to ${esc(town(t.end).name)} · <span class="num">${r1(miles)}</span> miles ${t.mode === 'bike' ? 'by bike' : 'on foot'} · ${fmt(t.date, 'long')} – ${fmt(t.days[t.days.length - 1].date, 'long')} · ${t.travelers} ${t.travelers === 1 ? 'traveler' : 'travelers'}</p>
+    <p class="muted" style="margin-top:6px">${esc(town(t.start).name)} to ${esc(town(t.end).name)} · <span class="num">${r1(miles)}</span> miles ${t.mode === 'bike' ? 'by bike' : 'on foot'} · +<span class="num">${gainBetween(town(t.start).mile, town(t.end).mile).toLocaleString('en-US')}</span> ft climb · ${fmt(t.date, 'long')} – ${fmt(t.days[t.days.length - 1].date, 'long')} · ${t.travelers} ${t.travelers === 1 ? 'traveler' : 'travelers'}</p>
     ${cost.tour ? `<div class="pkg-banner">${icon('flag')}<span><b>${esc(cost.tour.name)}</b> · ${t.guided ? 'guided departure' : 'self-guided'} ${fmt(t.date, 'long')} · inns, breakfasts, lunches and luggage transfer included at <b>${money(cost.tour.price)} per person</b>. Swap any stay below; the package price stays the same.</span><a href="#tour/${cost.tour.id}" class="small">Tour details</a></div>` : ''}
     ${ribbonHTML(t)}
     <div class="plan-layout">
@@ -1752,7 +1813,7 @@ function viewStays() {
   const tabs = `<div class="cat-tabs" role="tablist">${CATS.map((c, i) => `<button role="tab" aria-selected="${c.id === d.cat}" class="${c.id === d.cat ? 'on' : ''}${i === 0 ? ' lead' : ''}" data-act="dir-cat" data-val="${c.id}">${icon(c.icon)}${c.label}<span class="n num">${base.filter(c.test).length}</span></button>`).join('')}</div>`;
   const check = (group, val, label, set) => `<label class="check"><input type="checkbox" data-dir="${group}" value="${val}" ${set.has(val) ? 'checked' : ''}>${label}</label>`;
   const filters = `<aside class="filters${state.ui.filtersOpen ? ' open' : ''}"><h3>Filters <button class="btn btn-light btn-sm" data-act="dir-reset">Reset</button></h3>
-    <div class="group"><b>Trail section</b><select data-dir="section" style="min-height:44px;border:2px solid var(--line);border-radius:8px;padding:0 10px;background:#fff"><option value="all">All sections (mile 0–104)</option>${SECTIONS.map(s => `<option value="${s.id}"${d.section === s.id ? ' selected' : ''}>${esc(s.name)} · mi ${s.from}–${s.to}</option>`).join('')}</select></div>
+    <div class="group"><b>Trail section</b><select data-dir="section" style="min-height:44px;border:2px solid var(--line);border-radius:8px;padding:0 10px;background:#fff"><option value="all">All sections (mile 0–${TRAIL.length})</option>${SECTIONS.map(s => `<option value="${s.id}"${d.section === s.id ? ' selected' : ''}>${esc(s.name)} · mi ${s.from}–${s.to}</option>`).join('')}</select></div>
     <div class="group"><b>Date</b><input type="date" data-dir="date" value="${d.date}" style="min-height:44px;border:2px solid var(--line);border-radius:8px;padding:0 10px;background:#fff"><span class="small muted">Hides stays that are sold out that night</span></div>
     <div class="group"><b>Max nightly rate · <span class="num">${money(d.maxPrice)}</span></b><input class="range" type="range" min="120" max="350" step="10" value="${d.maxPrice}" data-dir="maxPrice"></div>
     <div class="group"><b>Max distance from trail · <span class="num">${d.maxDist} mi</span></b><input class="range" type="range" min="0.2" max="2" step="0.2" value="${d.maxDist}" data-dir="maxDist"></div>
@@ -1791,7 +1852,7 @@ function viewStay(id) {
         <span class="eyebrow">${TYPE_LABEL[l.type]} · ${esc(l.town)}, Massachusetts${l.est ? ` · est. ${l.est}` : ''}</span>
         <h1 style="font-size:clamp(1.9rem,4cqw,2.8rem);margin-top:6px">${esc(l.name)}</h1>
         <p class="lede">${esc(l.tagline)}</p>
-        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px"><span>${stars(l.rating)} <span class="muted">(${l.reviews} reviews)</span></span>${night >= 0 ? `<span class="tag ochre">${icon('moon')} On your trip · Night ${night + 1}</span>` : ''}</div>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px"><span>${stars(l.rating)} <span class="muted">(${l.reviews} reviews)</span></span>${isCircleMember(l) ? '<span class="tag ochre">Trail Circle member</span>' : ''}${night >= 0 ? `<span class="tag ochre">${icon('moon')} On your trip · Night ${night + 1}</span>` : ''}</div>
         <div class="quick">
           <div>${icon('map')}<span>${l.dist} mi from the trail</span></div>
           <div class="${l.amen.breakfast ? '' : 'no'}">${icon('coffee')}<span>${l.amen.breakfast ? 'Breakfast included' : 'Breakfast nearby'}</span></div>
@@ -1854,7 +1915,7 @@ function viewTour(id) {
         <div class="grid-2">${stays.map(l => innCard(l)).join('')}</div>
         <h2>Day by day</h2>
         ${days.map((d, i) => { const from = townAtMile(d.fromMile).name.split(' (')[0], to = townAtMile(d.toMile).name.split(' (')[0]; const sec = sectionAt(Math.max(d.fromMile, d.toMile) - 0.1); const l = d.lodgingId ? byId(d.lodgingId) : null; const dm = Math.abs(d.toMile - d.fromMile);
-          return `<div class="narr"><div class="d">Day ${d.n}<small>${r1(dm)} mi · ~${hoursFor(dm, tour.mode)} hrs</small></div><div><h3>${esc(from)} → ${esc(to)}</h3><p>${esc(sec.blurb)}</p>${l ? `<div class="tonight-line">${icon('moon')}<b>Tonight in ${esc(l.town)}: <a href="#stay/${l.id}">${esc(l.name)}</a></b><span class="muted">${esc(l.tagline)}</span></div>` : `<div class="tonight-line">${icon('flag')}<b>Trip ends in ${esc(to)}.</b><span class="muted">Add a final night from the itinerary if you'd rather not travel home the same day.</span></div>`}</div></div>`; }).join('')}
+          return `<div class="narr"><div class="d">Day ${d.n}<small>${r1(dm)} mi · +${gainBetween(d.fromMile, d.toMile)} ft · ~${hoursFor(dm, tour.mode)} hrs</small></div><div><h3>${esc(from)} → ${esc(to)}</h3><p>${esc(sec.blurb)}</p>${l ? `<div class="tonight-line">${icon('moon')}<b>Tonight in ${esc(l.town)}: <a href="#stay/${l.id}">${esc(l.name)}</a></b><span class="muted">${esc(l.tagline)}</span></div>` : `<div class="tonight-line">${icon('flag')}<b>Trip ends in ${esc(to)}.</b><span class="muted">Add a final night from the itinerary if you'd rather not travel home the same day.</span></div>`}</div></div>`; }).join('')}
         <h2>What's included</h2><ul class="incl">${TOUR_INCLUDES.map(i => `<li>${icon('check')}<span>${esc(i)}</span></li>`).join('')}</ul>
         <h2>At a glance</h2>
         <div class="glance"><div><b>Trip length</b><span>${s.days} days · ${s.nights} nights</span></div><div><b>Daily miles</b><span>${s.min}–${s.max}</span></div><div><b>Rating</b><span>${tour.rating}</span></div><div><b>Trail surface</b><span>${[...new Set(days.map(d => sectionAt(Math.max(d.fromMile, d.toMile) - 0.1).name))].join(', ')}</span></div><div><b>Meals</b><span>${esc(tour.meals)}</span></div><div><b>Group size</b><span>Max ${tour.groupMax} on guided departures</span></div><div><b>Support</b><span>Luggage van, 24-hr traveler line, mechanic on guided dates</span></div><div><b>Minimum age</b><span>12 with an adult</span></div><div><b>Offline</b><span>Trail Mode download included</span></div></div>
@@ -1918,6 +1979,7 @@ function viewConfirm() {
   return `<section class="section"><div class="wrap" style="max-width:760px">
     <p class="eyebrow">Booking confirmed</p><h2>Your trail trip is booked, ${esc(b.name.split(' ')[0])}.</h2>
     <p class="muted" style="margin:8px 0 20px">Confirmation <code>${b.id}</code> · ${b.tour ? `${esc(b.tour)} · ` : ''}${fmt(b.nights[0].date, 'long')} – ${fmt(b.nights[b.nights.length - 1].date, 'long')} · ${money(b.total)} paid. Each inn has your reservation on its own calendar.</p>
+    ${(() => { const n = b.nights.filter(x => isCircleMember(byId(x.lodgingId))).length; return n ? `<div class="notice" style="margin-bottom:16px"><b>Trail Circle:</b> this trip logs ${n} ${n === 1 ? 'stay' : 'stays'} at member inns. ${n >= 5 ? 'That completes a circle. Your gift certificate arrives with your final confirmation.' : `${5 - n} more and you've earned a gift certificate good at any member inn.`}</div>` : ''; })()}
     ${b.nights.map(n => { const l = byId(n.lodgingId); return `<div class="confirm-card"><div><span class="small" style="color:var(--clay-deep);font-weight:700;text-transform:uppercase;letter-spacing:.06em">${fmt(n.date, 'long')} · Night ${n.n}</span><b style="display:block">${esc(l.name)}</b><span class="small muted">${esc(l.address)} · <a href="tel:${l.phone.replace(/\D/g, '')}">${esc(l.phone)}</a></span></div><div class="small" style="text-align:right">Inn confirmation<br><code>${n.conf}</code></div></div>`; }).join('')}
     ${b.bag ? `<div class="confirm-card"><div><b>Baggage transfer</b><span class="small muted" style="display:block">Valley Bag Shuttle · bags out by 9 AM, delivered by 3 PM · dispatch (413) 555-0100</span></div><code>VBS-${b.id.slice(-4)}</code></div>` : ''}
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px"><a class="btn btn-forest" href="#trail-mode">${icon('download')} Download Trip for Offline Use</a><a class="btn btn-outline" href="#map">See it on the map</a><button class="btn btn-light" data-act="new-trip">Plan another trip</button></div>
@@ -1947,7 +2009,7 @@ function viewJoin() {
   const benefits = [['users', 'Multi-night travelers', 'Trail trips average 3.4 nights. Guests arrive with the next inn already booked, so there is no bargaining over one-night minimums.'], ['sync', 'Keep your own system', 'Connect ResNexus, or share an iCal feed from any booking engine. Your calendar stays the source of truth.'], ['shield', 'No double bookings', 'Availability is read live at search and held for 12 minutes at checkout. Confirmed stays post back to your calendar instantly.'], ['print', 'Your story, told well', 'Your page leads with what makes your place memorable: the porch, the breakfast, the trail knowledge. Not a spec sheet.'], ['bag', 'Baggage network', 'Opt in to luggage transfer and the shuttle handles bags. You just receive and release them.'], ['map', 'On the map', 'A pin at your trail mile, your distance from the trail, and directions from the nearest trailhead.']];
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <div class="join-hero"><div><p class="eyebrow">For lodging operators</p><h2>Own an inn along the trail? Join the network.</h2><p class="muted" style="margin-top:10px;max-width:52ch">Trail Stays fills midweek rooms with walkers and cyclists who need a bed exactly where you are. You keep your booking system, your rates, and your guests.</p>
-      <div class="hero-stats" style="margin-top:20px"><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">104</b><span style="color:var(--muted)">trail miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
+      <div class="hero-stats" style="margin-top:20px"><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">${TRAIL.length}</b><span style="color:var(--muted)">route miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
       <div class="card"><div class="card-img" style="background-image:${scene('join', 'inn')};aspect-ratio:16/11"></div></div></div>
     <div class="grid-3" style="margin-top:36px">${benefits.map(b => `<div class="benefit">${icon(b[0])}<h3>${b[1]}</h3><p>${b[2]}</p></div>`).join('')}</div>
     <div class="section-head" style="margin-top:44px"><div><p class="eyebrow">How the calendar sync works</p><h2>Your calendar, read live and written back</h2></div></div>
@@ -1994,7 +2056,7 @@ function footerHTML() {
     <div><h4>Plan</h4><a href="#plan">Trip planner</a><a href="#map">Trail map</a><a href="#stays">All stays</a><a href="#trail-mode">Trail Mode (offline)</a></div>
     <div><h4>Trail</h4>${RESOURCES.slice(0, 4).map(r => `<a href="${r.url}" target="_blank" rel="noopener">${esc(r.name)}</a>`).join('')}</div>
     <div><h4>Network</h4><a href="#join">Join as an innkeeper</a><a href="#join">Baggage transfer partners</a><a href="#home">Contact</a></div>
-  </div><div class="fine">Prototype for RFP review. Trail mileage is approximate and lodging properties are illustrative examples, not real businesses. Map reference: MassTrailTracker.com. Booking engine integration: ResNexus.</div></div></footer>`;
+  </div><div class="fine">Prototype for RFP review. Route alignment and mileage follow the MCRT full route on Ride with GPS (${TRAIL.length} mi). Trail surface and status reference: MassTrailTracker.com, an independent statewide trail map built by Danny in Boston. Parking and restroom points are real; lodging properties, shops and restaurants are illustrative examples, not real businesses. Booking engine integration: ResNexus.</div></div></footer>`;
 }
 function shell(view) {
   return navHTML() + `<main id="view">${view}</main>` + footerHTML() + '<div class="toast-host"></div>' + mobileBarHTML();

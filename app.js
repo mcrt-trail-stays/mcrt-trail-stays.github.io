@@ -225,6 +225,11 @@ function requestBand(tourId) {
     : `<form data-act="request-submit" novalidate><label class="sr" for="rq-tour">Tour</label><select id="rq-tour">${TOURS.map(t => `<option value="${t.id}"${t.id === tourId ? ' selected' : ''}>${esc(t.name)} · ${esc(t.route)}</option>`).join('')}<option value="all">All tours (full catalog)</option></select><label class="sr" for="rq-email">Email</label><input id="rq-email" type="email" placeholder="you@example.com" required><button class="btn btn-primary" type="submit">Request Free Itinerary ${icon('arrow')}</button><span class="small" style="color:rgba(255,255,255,.6)">No spam. One email with the PDF, then occasional trail news you can leave any time.</span></form>`}
   </div>`;
 }
+function gainBetween(a, b) {
+  const lo = Math.min(a, b), hi = Math.max(a, b); let g = 0;
+  for (let i = 1; i < TOWNS.length; i++) { const p = TOWNS[i - 1], t = TOWNS[i]; const s0 = Math.max(lo, p.mile), e0 = Math.min(hi, t.mile); if (e0 > s0) g += t.gain * (e0 - s0) / (t.mile - p.mile); }
+  return Math.round(g);
+}
 function tripMiles(t) { return Math.abs(town(t.end).mile - town(t.start).mile); }
 function hoursFor(miles, mode) { return Math.round(miles / MPH[mode] * 2) / 2; }
 function tripTitle(t) { return `Your ${t.days.length}-Day Mass Central Rail Trail Trip`; }
@@ -346,7 +351,7 @@ function animateRibbon(t) {
 }
 
 /* ---------- schematic map ---------- */
-const MAP = { W: 1100, H: 560, x0: 50, scale: 1000 / 104, dy: 150 };
+const MAP = { W: 1100, H: 560, x0: 50, scale: 1000 / TRAIL.length, dy: 150 };
 const mx = m => MAP.x0 + m * MAP.scale;
 function my(m) {
   for (let i = 0; i < TOWNS.length - 1; i++) {
@@ -368,9 +373,10 @@ const PIN_ICON = {
   food: '<path d="M-3.5 -6v12M-1 -6v12M-6 -6v4a2.5 2.5 0 0 0 5 0v-4M3 -6c2 0 3 2 3 5v7" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
   luggage: '<rect x="-6" y="-3" width="12" height="9" rx="1.5" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M-3 -3v-3h6v3" stroke="#fff" stroke-width="1.8" fill="none"/>',
   trailhead: '<path d="M-4 -6v12M-4 -6h8l-2 3 2 3h-8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linejoin="round"/>',
-  poi: '<path d="M0 -6.5 L1.9 -2 L6.5 -1.6 L3 1.6 L4 6.3 L0 3.8 L-4 6.3 L-3 1.6 L-6.5 -1.6 L-1.9 -2 Z" fill="#fff"/>'
+  poi: '<path d="M0 -6.5 L1.9 -2 L6.5 -1.6 L3 1.6 L4 6.3 L0 3.8 L-4 6.3 L-3 1.6 L-6.5 -1.6 L-1.9 -2 Z" fill="#fff"/>',
+  restroom: '<path d="M0 -6.5 C 3 -2.5, 5 0, 5 2.2 A5 5 0 0 1 -5 2.2 C -5 0, -3 -2.5, 0 -6.5 Z" fill="#fff"/>'
 };
-const PIN_OFF = { lodging: 22, trailhead: 16, parking: 40, bike: 56, food: 40, luggage: 58, poi: 18 };
+const PIN_OFF = { lodging: 22, trailhead: 16, parking: 40, bike: 56, food: 40, luggage: 58, poi: 18, restroom: 30 };
 
 function mapSVGInner(opts) {
   const f = opts.filters; const trip = opts.showTrip ? state.trip : null;
@@ -378,14 +384,14 @@ function mapSVGInner(opts) {
   let s = `<rect width="${MAP.W}" height="${MAP.H}" fill="${MC.bg}"/>`;
   s += `<g fill="${MC.land}">` + [[130, 90, 150, 44], [430, 460, 180, 40], [720, 70, 130, 40], [960, 470, 120, 34], [300, 500, 200, 30], [620, 480, 150, 30], [980, 100, 100, 36]].map(a => `<ellipse cx="${a[0]}" cy="${a[1]}" rx="${a[2]}" ry="${a[3]}"/>`).join('') + '</g>';
   s += `<path d="M${mx(2.2) - 8} 0 C ${mx(2.2) + 14} 120, ${mx(2.2) - 18} 300, ${mx(2.2) + 4} ${MAP.H}" stroke="${MC.water}" stroke-width="16" fill="none"/><text x="${mx(2.2) + 14}" y="60" class="mile-label" font-size="11">Connecticut River</text>`;
-  s += `<ellipse cx="${mx(23)}" cy="215" rx="100" ry="58" fill="${MC.water}"/><text x="${mx(23)}" y="219" class="mile-label" text-anchor="middle" font-size="12">Quabbin Reservoir</text>`;
-  s += `<ellipse cx="${mx(65.5)}" cy="236" rx="46" ry="26" fill="${MC.water}"/><text x="${mx(65.5)}" y="240" class="mile-label" text-anchor="middle" font-size="10">Wachusett Reservoir</text>`;
-  s += `<path d="M${mx(95.5)} ${MAP.H} C ${mx(98)} 420, ${mx(101)} 400, ${mx(104) + 40} 395" stroke="${MC.water}" stroke-width="12" fill="none"/><text x="${mx(98)}" y="470" class="mile-label" font-size="11">Charles River</text>`;
-  s += `<path d="${trailPath(0, 104)}" stroke="${MC.halo}" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
-  s += `<path d="${trailPath(0, 104)}" stroke="${MC.trail}" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
-  [[25, 30], [33, 37], [75, 78]].forEach(p => { s += `<path d="${trailPath(p[0], p[1])}" stroke="${MC.connector}" stroke-width="4.5" fill="none" stroke-dasharray="7 6" stroke-linecap="round"/>`; });
+  s += `<ellipse cx="${mx(27)}" cy="215" rx="100" ry="58" fill="${MC.water}"/><text x="${mx(27)}" y="219" class="mile-label" text-anchor="middle" font-size="12">Quabbin Reservoir</text>`;
+  s += `<ellipse cx="${mx(76)}" cy="236" rx="46" ry="26" fill="${MC.water}"/><text x="${mx(76)}" y="240" class="mile-label" text-anchor="middle" font-size="10">Wachusett Reservoir</text>`;
+  s += `<path d="M${mx(TRAIL.length - 9)} ${MAP.H} C ${mx(TRAIL.length - 6)} 420, ${mx(TRAIL.length - 3)} 400, ${mx(TRAIL.length) + 40} 395" stroke="${MC.water}" stroke-width="12" fill="none"/><text x="${mx(TRAIL.length - 6)}" y="470" class="mile-label" font-size="11">Charles River</text>`;
+  s += `<path d="${trailPath(0, TRAIL.length)}" stroke="${MC.halo}" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<path d="${trailPath(0, TRAIL.length)}" stroke="${MC.trail}" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
+  [[33.5, 38.5], [41, 44], [87, 89.5]].forEach(p => { s += `<path d="${trailPath(p[0], p[1])}" stroke="${MC.connector}" stroke-width="4.5" fill="none" stroke-dasharray="7 6" stroke-linecap="round"/>`; });
   if (trip) { const a = town(trip.start).mile, b = town(trip.end).mile; s += `<path d="${trailPath(Math.min(a, b), Math.max(a, b))}" stroke="${MC.route}" stroke-width="9" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/>`; }
-  for (let m = 0; m <= 100; m += 10) { const x = mx(m), y = my(m); s += `<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y + 8}" stroke="${MC.trail}" stroke-width="2"/><text x="${x}" y="${y + 22}" class="mile-label" text-anchor="middle">mi ${m}</text>`; }
+  for (let m = 0; m <= TRAIL.length; m += 10) { const x = mx(m), y = my(m); s += `<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y + 8}" stroke="${MC.trail}" stroke-width="2"/><text x="${x}" y="${y + 22}" class="mile-label" text-anchor="middle">mi ${m}</text>`; }
   TOWNS.forEach((t, i) => {
     const x = mx(t.mile), y = t.y + MAP.dy; const up = i % 2 === 0;
     s += `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="${MC.trail}" stroke-width="2"/><text x="${x}" y="${up ? y - 15 : y + 34}" class="town-label" text-anchor="middle">${esc(t.name.replace(' (North Point)', ''))}</text>`;
@@ -416,13 +422,14 @@ function mapCardHTML(sel) {
       <p class="story" style="font-size:.95rem">${esc(l.tagline)}</p>
       ${badgesHTML(l, 3)}
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">${availHTML(l.id, date)}<span class="from">from ${money(l.rate)}</span></div>
-      <div class="card-actions"><button class="btn btn-forest btn-sm" data-act="add-trip" data-id="${l.id}">Add to Trip</button><a class="btn btn-outline btn-sm" href="#stay/${l.id}">View ${TYPE_WORD[l.type]}</a></div></div></div>`;
+      <div class="card-actions"><button class="btn btn-forest btn-sm" data-act="add-trip" data-id="${l.id}">Add to Trip</button><a class="btn btn-outline btn-sm" href="#stay/${l.id}">View ${TYPE_WORD[l.type]}</a></div><a class="small" href="https://${l.web}" target="_blank" rel="noopener">Visit ${esc(l.web)}</a></div></div>`;
   }
   const p = POIS.find(x => x.id === sel.id); if (!p) return '';
   const k = POI_KINDS[p.kind];
   return `<div class="map-card"><button class="close" data-act="map-card-close" aria-label="Close">×</button><div class="card-body">
     <span class="tag" style="background:${k.color}22;color:${k.color};align-self:flex-start">${k.label}</span><h3>${esc(p.name)}</h3><p class="small">${esc(p.note)}</p>
-    <div class="meta"><span>Trail mile <b class="num">${p.mile}</b></span><span>${esc(townAtMile(p.mile).name)}</span></div></div></div>`;
+    <div class="meta"><span>Trail mile <b class="num">${p.mile}</b></span><span>${esc(p.town || townAtMile(p.mile).name)}</span></div>
+    <div class="small" style="display:flex;gap:12px;flex-wrap:wrap">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Website</a>` : '<span class="muted">Website link added at onboarding</span>'}<a href="${TRAIL.mapUrl}" target="_blank" rel="noopener">Open in MassTrailTracker</a>${p.src === 'route' ? '<span class="muted">Point from the Ride with GPS route</span>' : ''}</div></div></div>`;
 }
 function mapHTML(opts) {
   const legend = Object.keys(POI_KINDS).map(k => `<label><input type="checkbox" data-mapf="${k}" ${opts.filters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('');
@@ -488,10 +495,10 @@ function secHero() {
   <section class="hero"><div class="hero-art" style="background-image:${scene('hero', 'rider')}"></div>
     <div class="wrap hero-in">
       <div>
-        <p class="eyebrow" style="color:var(--gold-light)">Northampton to Boston · 104 miles · inn to inn</p>
+        <p class="eyebrow" style="color:var(--gold-light)">Northampton to Boston · ${TRAIL.length} miles · inn to inn</p>
         <h1>Plan your Mass Central Rail Trail trip. <em>Discover memorable places to stay along the way.</em></h1>
         <p class="hero-lede">Choose your pace and we'll map each day's miles, introduce you to the inns and B&amp;Bs near every overnight stop, move your bags, and book the whole trip in one checkout.</p>
-        <div class="hero-stats"><div><b class="num">104</b><span>trail miles</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b class="num">${TOURS.length}</b><span>inn-to-inn tours</span></div><div><b>1</b><span>checkout</span></div></div>
+        <div class="hero-stats"><div><b class="num">${TRAIL.length}</b><span>route miles</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b class="num">${TOURS.length}</b><span>inn-to-inn tours</span></div><div><b>1</b><span>checkout</span></div></div>
         <p style="margin-top:22px;color:rgba(255,255,255,.85)">Prefer a ready-made trip? <a href="#tours" style="color:#fff;font-weight:700">See the inn-to-inn tours</a> with fall departures, or <a href="#tours" style="color:#fff;font-weight:700">request a free itinerary</a>.</p>
       </div>
       ${plannerForm(false)}
@@ -502,7 +509,7 @@ function secMapPreview() {
   const featured = ['trailside', 'maplehill', 'norwottuck', 'paradise'].map(byId);
   const exampleBag = 3 * BAG_RATE;
   return `<section class="section"><div class="wrap">
-    <div class="section-head"><div><p class="eyebrow">Interactive trail map</p><h2>Every mile, every inn, every place to refill a bottle</h2><p>Built on the MassTrailTracker.com trail reference. Tap a pin for details, drag to explore, and add a stay straight from the map.</p></div><a class="btn btn-outline" href="#map">Open the full map</a></div>
+    <div class="section-head"><div><p class="eyebrow">Interactive trail map</p><h2>Every mile, every inn, every place to refill a bottle</h2><p>Built on the MassTrailTracker.com trail reference, with mileage from the current best route on Ride with GPS. Parking and restroom pins come from the route itself. Tap a pin for details and a link to its website.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-outline" href="#map">Open the full map</a><a class="btn btn-light" href="${TRAIL.mapUrl}" target="_blank" rel="noopener">${icon('map')} MassTrailTracker</a></div></div>
     ${mapHTML({ filters: state.ui.mapFilters, showTrip: true, cls: 'map-preview' })}
   </div></section>`;
 }
@@ -512,7 +519,7 @@ function secHow() {
   return `<section class="section" style="background:var(--paper)"><div class="wrap">
     <div class="section-head"><div><p class="eyebrow">How it works</p><h2>Five steps from idea to booked trip</h2></div></div>
     <div class="steps">
-      ${[['Choose your route', 'Any two points on the trail, in either direction. A weekend or the whole 104 miles.'], ['Set your daily mileage', 'Walking 10 to 15, cycling 20 to 30. We place your overnight stops at real towns with real beds.'], ['Meet your inns', 'Each stop introduces the inns and B&amp;Bs nearby, with live availability. Swap any night for another stay.'], ['Add luggage transfer', 'Your bags travel by van from tonight\'s inn to tomorrow\'s while you travel by trail.'], ['Book the whole trip', 'One checkout, one confirmation, several independently owned inns.']].map((s, i) => `<div class="step"><div class="n">${i + 1}</div><div><h3>${s[0]}</h3><p>${s[1]}</p></div></div>`).join('')}
+      ${[['Choose your route', 'Any two points on the trail, in either direction. A weekend or the whole ${TRAIL.length} miles.'], ['Set your daily mileage', 'Walking 10 to 15, cycling 20 to 30. We place your overnight stops at real towns with real beds.'], ['Meet your inns', 'Each stop introduces the inns and B&amp;Bs nearby, with live availability. Swap any night for another stay.'], ['Add luggage transfer', 'Your bags travel by van from tonight\'s inn to tomorrow\'s while you travel by trail.'], ['Book the whole trip', 'One checkout, one confirmation, several independently owned inns.']].map((s, i) => `<div class="step"><div class="n">${i + 1}</div><div><h3>${s[0]}</h3><p>${s[1]}</p></div></div>`).join('')}
     </div>
   </div></section>`;
 }
@@ -574,7 +581,7 @@ function secHeroB() {
     <div class="wrap hero-in-b">
       <p class="eyebrow" style="color:var(--gold-light)">Tonight in ${esc(lead.town)} · trail mile ${lead.mile}</p>
       <h1>The trail brings you to the door. <em>The inn does the rest.</em></h1>
-      <p class="hero-lede">Walk or ride the Mass Central Rail Trail for a weekend or all 104 miles. Every night: a porch, a breakfast, and a host who knows the next twenty miles. Tell us your pace and we'll introduce you to the inns.</p>
+      <p class="hero-lede">Walk or ride the Mass Central Rail Trail for a weekend or all ${TRAIL.length} miles. Every night: a porch, a breakfast, and a host who knows the next twenty miles. Tell us your pace and we'll introduce you to the inns.</p>
       <div class="hero-actions"><a class="btn btn-primary" href="#plan">Plan my trail trip ${icon('arrow')}</a><a class="btn btn-light" href="#stays">Meet the inns</a><a class="btn btn-light" href="#tours">Fall departures</a></div>
     </div></section>
   <section class="planner-strip"><div class="wrap">${plannerForm(false)}</div></section>`;
@@ -599,8 +606,8 @@ function secInnsB() {
 function secHeroC() {
   const chips = Object.keys(POI_KINDS).map(k => `<label class="chip${state.ui.mapFilters.has(k) ? ' on' : ''}"><input type="checkbox" class="sr" data-mapf="${k}" ${state.ui.mapFilters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('');
   return `<section class="hero-c"><div class="wrap">
-    <div class="hero-c-top"><div><p class="eyebrow">Mass Central Rail Trail · Northampton → Boston · 104 mi</p><h1>Plan your trail trip. Discover memorable places to stay along the way.</h1><p class="hero-lede">Set your pace and we'll map each day's miles, introduce you to the inns near every stop, and move your bags.</p></div>
-      <div class="stats-strip"><div><b class="num">104</b><span>trail miles</span></div><div><b class="num">${LODGING.length}</b><span>stays</span></div><div><b class="num">${TOURS.length}</b><span>tours</span></div><div><b class="num">${SECTIONS.length}</b><span>sections</span></div></div></div>
+    <div class="hero-c-top"><div><p class="eyebrow">Mass Central Rail Trail · Northampton → Boston · ${TRAIL.length} mi</p><h1>Plan your trail trip. Discover memorable places to stay along the way.</h1><p class="hero-lede">Set your pace and we'll map each day's miles, introduce you to the inns near every stop, and move your bags.</p></div>
+      <div class="stats-strip"><div><b class="num">${TRAIL.length}</b><span>route miles</span></div><div><b class="num">${LODGING.length}</b><span>stays</span></div><div><b class="num">${TOURS.length}</b><span>tours</span></div><div><b class="num">${SECTIONS.length}</b><span>sections</span></div></div></div>
     <div class="hero-c-map">${mapHTML({ filters: state.ui.mapFilters, showTrip: true, cls: 'map-hero', noLegend: true })}<div class="planner-float">${plannerForm(false)}</div></div>
     <div class="map-toolbar" style="margin-top:12px">${chips}<a href="#map" class="chip" style="margin-left:auto;text-decoration:none">${icon('map')} Full map</a></div>
   </div></section>`;
@@ -630,10 +637,10 @@ function secHeroD() {
   return `
   <section class="hero hero-d"><div class="hero-art" style="background-image:${scene('hero-d', 'rider')}"></div>
     <div class="wrap hero-in-d">
-      <p class="eyebrow" style="color:var(--gold-light)">Mass Central Rail Trail · Northampton to Boston · 104 miles</p>
+      <p class="eyebrow" style="color:var(--gold-light)">Mass Central Rail Trail · Northampton to Boston · ${TRAIL.length} miles</p>
       <h1>Ride the old line. <em>Sleep at the inns it built.</em></h1>
       <p class="hero-lede">Plan a multi-day walk or ride, meet the B&amp;Bs and inns near every overnight stop, add luggage transfer, and book the whole trip in one checkout.</p>
-      <div class="hero-stats"><div><b class="num">104</b><span>trail miles</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b class="num">${TOURS.length}</b><span>inn-to-inn tours</span></div><div><b>1</b><span>checkout</span></div></div>
+      <div class="hero-stats"><div><b class="num">${TRAIL.length}</b><span>route miles</span></div><div><b class="num">${TRAIL.gainEast.toLocaleString('en-US')}</b><span>ft of climb</span></div><div><b class="num">${LODGING.length}</b><span>trailside stays</span></div><div><b>1</b><span>checkout</span></div></div>
     </div>
   </section>
   <section class="board-band"><div class="wrap">${plannerFormD()}</div></section>`;
@@ -649,19 +656,26 @@ function secToursD() {
     </tbody></table></div>
   </div></section>`;
 }
+function secCircle() {
+  return `<section class="section" style="background:var(--paper)"><div class="wrap">
+    <div class="circle"><div><p class="eyebrow">The Trail Circle</p><h2>Stay unique. Stay loyal. Stay in the Circle.</h2><p class="muted" style="margin-top:8px;max-width:52ch">Every night at a member inn or B&amp;B counts as a stay. Book here and it's logged for you; walk in off the trail and scan the card at the desk. No password, no app.</p></div>
+    <div class="circle-steps">${[['1', 'Stay at a member inn', 'Any night, any trip, booked here or at the door.'], ['2', 'Collect five stays', 'Stays never expire. Check your progress from the email we send after each one.'], ['3', 'Earn a gift certificate', '$75 for five stays, $125 for five different inns. Good at any member property for five years.']].map(x => `<div><b class="n">${x[0]}</b><h3>${x[1]}</h3><p>${x[2]}</p></div>`).join('')}</div></div>
+  </div></section>`;
+}
+const isCircleMember = l => l.type === 'bnb' || l.type === 'inn' || !!l.local;
 function viewHome() {
-  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secResources() + secJoin();
-  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secResources() + secJoin();
-  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secResources() + secJoin();
-  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secResources() + secJoin();
+  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
+  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
+  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
+  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secCircle() + secResources() + secJoin();
 }
 
 function viewMap() {
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <div class="section-head" style="margin-bottom:14px"><div><p class="eyebrow">Interactive trail map</p><h2>Mass Central Rail Trail, Northampton to Boston</h2><p>Drag to move, use + and − to zoom. Tap any pin for details. ${state.trip ? 'Your planned route is highlighted with a marker at each night\'s stay.' : 'Plan a trip and your route and overnight stops appear here.'}</p></div>${state.trip ? '<a class="btn btn-outline" href="#plan">View itinerary</a>' : '<a class="btn btn-primary" href="#plan">Plan a trip</a>'}</div>
-    <div class="map-toolbar">${Object.keys(POI_KINDS).map(k => `<label class="chip${state.ui.mapFilters.has(k) ? ' on' : ''}"><input type="checkbox" class="sr" data-mapf="${k}" ${state.ui.mapFilters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('')}</div>
+    <div class="map-toolbar">${Object.keys(POI_KINDS).map(k => `<label class="chip${state.ui.mapFilters.has(k) ? ' on' : ''}"><input type="checkbox" class="sr" data-mapf="${k}" ${state.ui.mapFilters.has(k) ? 'checked' : ''}><span class="dot" style="background:${POI_KINDS[k].color}"></span>${POI_KINDS[k].label}</label>`).join('')}<a class="chip" href="${TRAIL.mapUrl}" target="_blank" rel="noopener" style="margin-left:auto;text-decoration:none">${icon('map')} Open in MassTrailTracker</a><a class="chip" href="${TRAIL.routeUrl}" target="_blank" rel="noopener" style="text-decoration:none">${icon('bike')} Route on Ride with GPS</a></div>
     ${mapHTML({ filters: state.ui.mapFilters, showTrip: true, cls: 'map-tall', noLegend: true })}
-    <p class="small muted" style="margin-top:10px">Schematic map for the prototype. Production uses the MassTrailTracker.com basemap with GPS-accurate trail geometry, mile markers, and property coordinates.</p>
+    <p class="small muted" style="margin-top:10px">Schematic map for the prototype. Mileage follows the current best route (${TRAIL.length} mi, +${TRAIL.gainEast.toLocaleString('en-US')} ft eastbound). Parking and restroom pins are real points from the Ride with GPS route; lodging, shops and restaurants are illustrative. Production uses the MassTrailTracker.com basemap with its paved, stone-dust, on-road and under-construction status layers, GPS-accurate geometry, and a website link on every pin.</p>
   </div></section>`;
 }
 
@@ -707,7 +721,7 @@ function viewPlan() {
     const lead = chosen || near[0]; const alts = near.filter(l => l !== lead); const open = state.ui.openAlts.has(d.n);
     return `<article class="day" id="day-${d.n}" data-act="walker" data-day="${d.n}">
       <div class="day-head"><div class="day-n"><small>Day ${d.n}</small>${fmt(d.date, 'long')}</div>
-        <div><div class="day-route">${esc(from.name.split(' (')[0])}<span class="arrow">→</span>${esc(to.name.split(' (')[0])}</div><div class="day-stats"><span><b class="num">${r1(dm)} miles</b></span><span>~<b class="num">${hoursFor(dm, t.mode)} hrs</b> ${t.mode === 'bike' ? 'riding' : 'walking'}</span><span>${esc(secs)}</span><span>Mile <b class="num">${r1(d.fromMile)}</b> → <b class="num">${r1(d.toMile)}</b></span></div></div>
+        <div><div class="day-route">${esc(from.name.split(' (')[0])}<span class="arrow">→</span>${esc(to.name.split(' (')[0])}</div><div class="day-stats"><span><b class="num">${r1(dm)} miles</b></span><span>+<b class="num">${gainBetween(d.fromMile, d.toMile)} ft</b> climb</span><span>~<b class="num">${hoursFor(dm, t.mode)} hrs</b> ${t.mode === 'bike' ? 'riding' : 'walking'}</span><span>${esc(secs)}</span><span>Mile <b class="num">${r1(d.fromMile)}</b> → <b class="num">${r1(d.toMile)}</b></span></div></div>
         <div class="small" style="text-align:right">${chosen ? `<span class="tag ochre">${icon('moon')} Night ${d.n}: ${esc(chosen.name)}</span>` : isLast ? '<span class="tag">Trip ends here</span>' : '<span class="tag clay">Choose a stay</span>'}</div></div>
       <div class="day-body"><h4>${isLast ? `Your trip ends in ${esc(to.name.split(' (')[0])} · mile ${r1(d.toMile)}` : `Where you'll sleep · ${esc(to.name.split(' (')[0])} · mile ${r1(d.toMile)}`}</h4>
         ${lead ? tonightBlock(d, lead, t, isLast, open, alts.length) : `<div class="notice">No participating lodging within 4 miles of this stop yet. Adjust your daily mileage or <a href="#join">tell an innkeeper about the network</a>.</div>`}
@@ -717,7 +731,7 @@ function viewPlan() {
   }).join('');
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <p class="eyebrow">Trip planner</p><h2>${tripTitle(t)}</h2>
-    <p class="muted" style="margin-top:6px">${esc(town(t.start).name)} to ${esc(town(t.end).name)} · <span class="num">${r1(miles)}</span> miles ${t.mode === 'bike' ? 'by bike' : 'on foot'} · ${fmt(t.date, 'long')} – ${fmt(t.days[t.days.length - 1].date, 'long')} · ${t.travelers} ${t.travelers === 1 ? 'traveler' : 'travelers'}</p>
+    <p class="muted" style="margin-top:6px">${esc(town(t.start).name)} to ${esc(town(t.end).name)} · <span class="num">${r1(miles)}</span> miles ${t.mode === 'bike' ? 'by bike' : 'on foot'} · +<span class="num">${gainBetween(town(t.start).mile, town(t.end).mile).toLocaleString('en-US')}</span> ft climb · ${fmt(t.date, 'long')} – ${fmt(t.days[t.days.length - 1].date, 'long')} · ${t.travelers} ${t.travelers === 1 ? 'traveler' : 'travelers'}</p>
     ${cost.tour ? `<div class="pkg-banner">${icon('flag')}<span><b>${esc(cost.tour.name)}</b> · ${t.guided ? 'guided departure' : 'self-guided'} ${fmt(t.date, 'long')} · inns, breakfasts, lunches and luggage transfer included at <b>${money(cost.tour.price)} per person</b>. Swap any stay below; the package price stays the same.</span><a href="#tour/${cost.tour.id}" class="small">Tour details</a></div>` : ''}
     ${ribbonHTML(t)}
     <div class="plan-layout">
@@ -764,7 +778,7 @@ function viewStays() {
   const tabs = `<div class="cat-tabs" role="tablist">${CATS.map((c, i) => `<button role="tab" aria-selected="${c.id === d.cat}" class="${c.id === d.cat ? 'on' : ''}${i === 0 ? ' lead' : ''}" data-act="dir-cat" data-val="${c.id}">${icon(c.icon)}${c.label}<span class="n num">${base.filter(c.test).length}</span></button>`).join('')}</div>`;
   const check = (group, val, label, set) => `<label class="check"><input type="checkbox" data-dir="${group}" value="${val}" ${set.has(val) ? 'checked' : ''}>${label}</label>`;
   const filters = `<aside class="filters${state.ui.filtersOpen ? ' open' : ''}"><h3>Filters <button class="btn btn-light btn-sm" data-act="dir-reset">Reset</button></h3>
-    <div class="group"><b>Trail section</b><select data-dir="section" style="min-height:44px;border:2px solid var(--line);border-radius:8px;padding:0 10px;background:#fff"><option value="all">All sections (mile 0–104)</option>${SECTIONS.map(s => `<option value="${s.id}"${d.section === s.id ? ' selected' : ''}>${esc(s.name)} · mi ${s.from}–${s.to}</option>`).join('')}</select></div>
+    <div class="group"><b>Trail section</b><select data-dir="section" style="min-height:44px;border:2px solid var(--line);border-radius:8px;padding:0 10px;background:#fff"><option value="all">All sections (mile 0–${TRAIL.length})</option>${SECTIONS.map(s => `<option value="${s.id}"${d.section === s.id ? ' selected' : ''}>${esc(s.name)} · mi ${s.from}–${s.to}</option>`).join('')}</select></div>
     <div class="group"><b>Date</b><input type="date" data-dir="date" value="${d.date}" style="min-height:44px;border:2px solid var(--line);border-radius:8px;padding:0 10px;background:#fff"><span class="small muted">Hides stays that are sold out that night</span></div>
     <div class="group"><b>Max nightly rate · <span class="num">${money(d.maxPrice)}</span></b><input class="range" type="range" min="120" max="350" step="10" value="${d.maxPrice}" data-dir="maxPrice"></div>
     <div class="group"><b>Max distance from trail · <span class="num">${d.maxDist} mi</span></b><input class="range" type="range" min="0.2" max="2" step="0.2" value="${d.maxDist}" data-dir="maxDist"></div>
@@ -803,7 +817,7 @@ function viewStay(id) {
         <span class="eyebrow">${TYPE_LABEL[l.type]} · ${esc(l.town)}, Massachusetts${l.est ? ` · est. ${l.est}` : ''}</span>
         <h1 style="font-size:clamp(1.9rem,4cqw,2.8rem);margin-top:6px">${esc(l.name)}</h1>
         <p class="lede">${esc(l.tagline)}</p>
-        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px"><span>${stars(l.rating)} <span class="muted">(${l.reviews} reviews)</span></span>${night >= 0 ? `<span class="tag ochre">${icon('moon')} On your trip · Night ${night + 1}</span>` : ''}</div>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px"><span>${stars(l.rating)} <span class="muted">(${l.reviews} reviews)</span></span>${isCircleMember(l) ? '<span class="tag ochre">Trail Circle member</span>' : ''}${night >= 0 ? `<span class="tag ochre">${icon('moon')} On your trip · Night ${night + 1}</span>` : ''}</div>
         <div class="quick">
           <div>${icon('map')}<span>${l.dist} mi from the trail</span></div>
           <div class="${l.amen.breakfast ? '' : 'no'}">${icon('coffee')}<span>${l.amen.breakfast ? 'Breakfast included' : 'Breakfast nearby'}</span></div>
@@ -866,7 +880,7 @@ function viewTour(id) {
         <div class="grid-2">${stays.map(l => innCard(l)).join('')}</div>
         <h2>Day by day</h2>
         ${days.map((d, i) => { const from = townAtMile(d.fromMile).name.split(' (')[0], to = townAtMile(d.toMile).name.split(' (')[0]; const sec = sectionAt(Math.max(d.fromMile, d.toMile) - 0.1); const l = d.lodgingId ? byId(d.lodgingId) : null; const dm = Math.abs(d.toMile - d.fromMile);
-          return `<div class="narr"><div class="d">Day ${d.n}<small>${r1(dm)} mi · ~${hoursFor(dm, tour.mode)} hrs</small></div><div><h3>${esc(from)} → ${esc(to)}</h3><p>${esc(sec.blurb)}</p>${l ? `<div class="tonight-line">${icon('moon')}<b>Tonight in ${esc(l.town)}: <a href="#stay/${l.id}">${esc(l.name)}</a></b><span class="muted">${esc(l.tagline)}</span></div>` : `<div class="tonight-line">${icon('flag')}<b>Trip ends in ${esc(to)}.</b><span class="muted">Add a final night from the itinerary if you'd rather not travel home the same day.</span></div>`}</div></div>`; }).join('')}
+          return `<div class="narr"><div class="d">Day ${d.n}<small>${r1(dm)} mi · +${gainBetween(d.fromMile, d.toMile)} ft · ~${hoursFor(dm, tour.mode)} hrs</small></div><div><h3>${esc(from)} → ${esc(to)}</h3><p>${esc(sec.blurb)}</p>${l ? `<div class="tonight-line">${icon('moon')}<b>Tonight in ${esc(l.town)}: <a href="#stay/${l.id}">${esc(l.name)}</a></b><span class="muted">${esc(l.tagline)}</span></div>` : `<div class="tonight-line">${icon('flag')}<b>Trip ends in ${esc(to)}.</b><span class="muted">Add a final night from the itinerary if you'd rather not travel home the same day.</span></div>`}</div></div>`; }).join('')}
         <h2>What's included</h2><ul class="incl">${TOUR_INCLUDES.map(i => `<li>${icon('check')}<span>${esc(i)}</span></li>`).join('')}</ul>
         <h2>At a glance</h2>
         <div class="glance"><div><b>Trip length</b><span>${s.days} days · ${s.nights} nights</span></div><div><b>Daily miles</b><span>${s.min}–${s.max}</span></div><div><b>Rating</b><span>${tour.rating}</span></div><div><b>Trail surface</b><span>${[...new Set(days.map(d => sectionAt(Math.max(d.fromMile, d.toMile) - 0.1).name))].join(', ')}</span></div><div><b>Meals</b><span>${esc(tour.meals)}</span></div><div><b>Group size</b><span>Max ${tour.groupMax} on guided departures</span></div><div><b>Support</b><span>Luggage van, 24-hr traveler line, mechanic on guided dates</span></div><div><b>Minimum age</b><span>12 with an adult</span></div><div><b>Offline</b><span>Trail Mode download included</span></div></div>
@@ -930,6 +944,7 @@ function viewConfirm() {
   return `<section class="section"><div class="wrap" style="max-width:760px">
     <p class="eyebrow">Booking confirmed</p><h2>Your trail trip is booked, ${esc(b.name.split(' ')[0])}.</h2>
     <p class="muted" style="margin:8px 0 20px">Confirmation <code>${b.id}</code> · ${b.tour ? `${esc(b.tour)} · ` : ''}${fmt(b.nights[0].date, 'long')} – ${fmt(b.nights[b.nights.length - 1].date, 'long')} · ${money(b.total)} paid. Each inn has your reservation on its own calendar.</p>
+    ${(() => { const n = b.nights.filter(x => isCircleMember(byId(x.lodgingId))).length; return n ? `<div class="notice" style="margin-bottom:16px"><b>Trail Circle:</b> this trip logs ${n} ${n === 1 ? 'stay' : 'stays'} at member inns. ${n >= 5 ? 'That completes a circle. Your gift certificate arrives with your final confirmation.' : `${5 - n} more and you've earned a gift certificate good at any member inn.`}</div>` : ''; })()}
     ${b.nights.map(n => { const l = byId(n.lodgingId); return `<div class="confirm-card"><div><span class="small" style="color:var(--clay-deep);font-weight:700;text-transform:uppercase;letter-spacing:.06em">${fmt(n.date, 'long')} · Night ${n.n}</span><b style="display:block">${esc(l.name)}</b><span class="small muted">${esc(l.address)} · <a href="tel:${l.phone.replace(/\D/g, '')}">${esc(l.phone)}</a></span></div><div class="small" style="text-align:right">Inn confirmation<br><code>${n.conf}</code></div></div>`; }).join('')}
     ${b.bag ? `<div class="confirm-card"><div><b>Baggage transfer</b><span class="small muted" style="display:block">Valley Bag Shuttle · bags out by 9 AM, delivered by 3 PM · dispatch (413) 555-0100</span></div><code>VBS-${b.id.slice(-4)}</code></div>` : ''}
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px"><a class="btn btn-forest" href="#trail-mode">${icon('download')} Download Trip for Offline Use</a><a class="btn btn-outline" href="#map">See it on the map</a><button class="btn btn-light" data-act="new-trip">Plan another trip</button></div>
@@ -959,7 +974,7 @@ function viewJoin() {
   const benefits = [['users', 'Multi-night travelers', 'Trail trips average 3.4 nights. Guests arrive with the next inn already booked, so there is no bargaining over one-night minimums.'], ['sync', 'Keep your own system', 'Connect ResNexus, or share an iCal feed from any booking engine. Your calendar stays the source of truth.'], ['shield', 'No double bookings', 'Availability is read live at search and held for 12 minutes at checkout. Confirmed stays post back to your calendar instantly.'], ['print', 'Your story, told well', 'Your page leads with what makes your place memorable: the porch, the breakfast, the trail knowledge. Not a spec sheet.'], ['bag', 'Baggage network', 'Opt in to luggage transfer and the shuttle handles bags. You just receive and release them.'], ['map', 'On the map', 'A pin at your trail mile, your distance from the trail, and directions from the nearest trailhead.']];
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <div class="join-hero"><div><p class="eyebrow">For lodging operators</p><h2>Own an inn along the trail? Join the network.</h2><p class="muted" style="margin-top:10px;max-width:52ch">Trail Stays fills midweek rooms with walkers and cyclists who need a bed exactly where you are. You keep your booking system, your rates, and your guests.</p>
-      <div class="hero-stats" style="margin-top:20px"><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">104</b><span style="color:var(--muted)">trail miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
+      <div class="hero-stats" style="margin-top:20px"><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">${TRAIL.length}</b><span style="color:var(--muted)">route miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
       <div class="card"><div class="card-img" style="background-image:${scene('join', 'inn')};aspect-ratio:16/11"></div></div></div>
     <div class="grid-3" style="margin-top:36px">${benefits.map(b => `<div class="benefit">${icon(b[0])}<h3>${b[1]}</h3><p>${b[2]}</p></div>`).join('')}</div>
     <div class="section-head" style="margin-top:44px"><div><p class="eyebrow">How the calendar sync works</p><h2>Your calendar, read live and written back</h2></div></div>
@@ -1006,7 +1021,7 @@ function footerHTML() {
     <div><h4>Plan</h4><a href="#plan">Trip planner</a><a href="#map">Trail map</a><a href="#stays">All stays</a><a href="#trail-mode">Trail Mode (offline)</a></div>
     <div><h4>Trail</h4>${RESOURCES.slice(0, 4).map(r => `<a href="${r.url}" target="_blank" rel="noopener">${esc(r.name)}</a>`).join('')}</div>
     <div><h4>Network</h4><a href="#join">Join as an innkeeper</a><a href="#join">Baggage transfer partners</a><a href="#home">Contact</a></div>
-  </div><div class="fine">Prototype for RFP review. Trail mileage is approximate and lodging properties are illustrative examples, not real businesses. Map reference: MassTrailTracker.com. Booking engine integration: ResNexus.</div></div></footer>`;
+  </div><div class="fine">Prototype for RFP review. Route alignment and mileage follow the MCRT full route on Ride with GPS (${TRAIL.length} mi). Trail surface and status reference: MassTrailTracker.com, an independent statewide trail map built by Danny in Boston. Parking and restroom points are real; lodging properties, shops and restaurants are illustrative examples, not real businesses. Booking engine integration: ResNexus.</div></div></footer>`;
 }
 function shell(view) {
   return navHTML() + `<main id="view">${view}</main>` + footerHTML() + '<div class="toast-host"></div>' + mobileBarHTML();

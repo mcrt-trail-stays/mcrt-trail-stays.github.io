@@ -455,6 +455,15 @@ footer .fine{margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,
 .quick div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center;font-size:.9rem;font-weight:600}
 .quick .icon{color:var(--forest)}
 .quick .no{color:var(--muted);font-weight:500}
+/* ---- Trail Circle ---- */
+.circle{display:grid;grid-template-columns:1fr 1.4fr;gap:32px;align-items:center}
+.circle-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.circle-steps>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.circle-steps .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ochre);color:var(--ink);font-family:var(--display);font-weight:700;margin-bottom:8px}
+.circle-steps h3{font-size:1.05rem;margin-bottom:6px}
+.circle-steps p{font-size:.9rem;color:var(--muted)}
+@container app (max-width: 860px){.circle,.circle-steps{grid-template-columns:1fr}}
+
 /* ---- inn-to-inn tours ---- */
 .tour-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}
 .tour-img{display:block;aspect-ratio:16/10;background-size:cover;background-position:center;position:relative}
