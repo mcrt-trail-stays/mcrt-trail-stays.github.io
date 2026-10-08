@@ -6,6 +6,18 @@
    ResNexus-synced property directory. All properties are fictional.
 ------------------------------------------------------------------- */
 
+/* The organization behind the site. Nonprofit; no referral fees, no paid placement. */
+const ORG = { short: 'NERTAA', name: 'Northeast Rail Trail Accommodations Association', site: 'NERTAA.org', url: 'https://www.nertaa.org', email: 'info@nertaa.org', phone: '413 575 2277', address: '62 Chestnut Street, Florence, MA 01062',
+  mission: 'NERTAA unites local campgrounds, bed-and-breakfasts, short-term rentals, and other lodging providers to make multi-day walking and cycling journeys on the Northeast\'s developing network of shared-use paths more welcoming and accessible.',
+  principles: [
+    ['No referral fees', 'We do not accept commissions, kickbacks, or advertising fees from the lodging, shops, or services listed here.'],
+    ['Universal listings', 'Every available place to stay and every support service along the trail is listed, not only the ones that would pay for placement.'],
+    ['Built for accessibility', 'The planner and booking tools exist to help elderly, disabled, and first-time riders plan a multi-day trip on public trails safely.'],
+    ['Local economies first', 'Trail-based journey tourism that supports locally owned businesses, creates opportunities for residents, and preserves each town\'s character.'],
+    ['Car-free by design', 'Long-distance, non-motorized travel that cuts carbon and congestion, with commuter rail at both ends of the line.'],
+    ['Education on the trail', 'Rail history, local ecology, trail etiquette, bike maintenance, and safety, taught along the way.']
+  ] };
+
 const TRAIL = { name: 'Mass Central Rail Trail', length: 123.5, west: 'Northampton', east: 'Boston', gainEast: 4653, gainWest: 4779,
   routeUrl: 'https://ridewithgps.com/routes/53812869', routeName: 'MCRT Full Route (Ride with GPS)', mapUrl: 'https://masstrailtracker.com/map' };
 
@@ -223,6 +235,36 @@ const LODGING = [
     breakfast: 'Self-catered.',
     checkin: '3:00 PM (self check-in)', checkout: '11:00 AM', phone: '(617) 555-0133', web: 'alewifelofts.example', address: '150 Cambridgepark Dr, Cambridge, MA 02140',
     roomTypes: [ { name: 'Studio Loft', sleeps: 2, rate: 245 }, { name: 'One-Bedroom Loft', sleeps: 4, rate: 305 } ],
+    testimonials: [] },
+
+  { id: 'warerivercamp', name: 'Ware River Campground', town: 'Ware', type: 'camp', mile: 34.0, dist: 0.4, rate: 42, rooms: 18, rating: 4.5, reviews: 121, side: 1,
+    amen: { breakfast: false, bike: true, laundry: true, pets: true, luggage: true },
+    tagline: 'Tent and lean-to sites on the river, a short walk from Grenville Park.',
+    desc: 'Eighteen tent and lean-to sites along the Ware River with hot showers, a camp store, a coin laundry, and a covered cook shelter. The trail passes the back gate. Lean-tos can be reserved for travelers who do not want to carry a tent.',
+    directions: 'At mile 34.0 the trail passes Grenville Park. Take the gravel spur south 0.4 mi along the river to the campground gate.',
+    breakfast: 'Camp store sells coffee, eggs and bread from 7:00. Cook shelter with stoves.',
+    checkin: '2:00 PM', checkout: '11:00 AM', phone: '(413) 555-0144', web: 'wareriver.camp.example', address: '140 River Rd, Ware, MA 01082',
+    roomTypes: [ { name: 'Tent site', sleeps: 4, rate: 42 }, { name: 'Lean-to (no tent needed)', sleeps: 4, rate: 68 } ],
+    testimonials: [ { q: 'Lean-to, hot shower, laundry, and the trail at the back gate. Cheapest good night on the route.', who: 'Tasha R., end-to-end walker' } ] },
+
+  { id: 'wachusettpines', name: 'Wachusett Pines Campground', town: 'Rutland', type: 'camp', mile: 57.3, dist: 0.9, rate: 38, rooms: 24, rating: 4.4, reviews: 88, side: -1,
+    amen: { breakfast: false, bike: true, laundry: false, pets: true, luggage: true },
+    tagline: 'Pine-shaded sites and four camping cabins at the top of the Wachusett grade.',
+    desc: 'Twenty tent sites and four heated camping cabins in the pines near the highest point of the route. Fire rings, a bathhouse, and a bike wash. The cabins sleep four and are popular with families and with walkers who want a bed without an inn price.',
+    directions: 'At mile 57.3 exit at the Route 122 lot and follow Pines Road north 0.9 mi.',
+    breakfast: 'Self-catered. Camp store open 7:00–9:00 and 4:00–8:00.',
+    checkin: '2:00 PM', checkout: '11:00 AM', phone: '(508) 555-0162', web: 'wachusettpines.example', address: '55 Pines Rd, Rutland, MA 01543',
+    roomTypes: [ { name: 'Tent site', sleeps: 4, rate: 38 }, { name: 'Camping cabin', sleeps: 4, rate: 95 } ],
+    testimonials: [] },
+
+  { id: 'assabetcamp', name: 'Assabet River Campsites', town: 'Hudson', type: 'camp', mile: 90.6, dist: 0.6, rate: 36, rooms: 12, rating: 4.3, reviews: 54, side: 1,
+    amen: { breakfast: false, bike: true, laundry: false, pets: true, luggage: true },
+    tagline: 'Twelve walk-in sites on a bend of the Assabet, a mile from downtown Hudson.',
+    desc: 'A small town-run campground with twelve walk-in tent sites on the river, composting toilets, potable water, and a locked bike cage. Hudson\'s restaurants are a mile east on the trail.',
+    directions: 'At mile 90.6 the trail crosses the Assabet on the iron bridge. Take the path north along the river 0.6 mi to the sites.',
+    breakfast: 'Self-catered. Cafés in Hudson from 6:30.',
+    checkin: '3:00 PM', checkout: '11:00 AM', phone: '(978) 555-0170', web: 'hudsonrec.example', address: 'River Bend Rd, Hudson, MA 01749',
+    roomTypes: [ { name: 'Walk-in tent site', sleeps: 4, rate: 36 } ],
     testimonials: [] }
 ];
 
@@ -312,13 +354,13 @@ const POI_KINDS = {
   poi:       { label: 'Points of interest',   color: '#4A4F4D' }
 };
 
-const TYPE_LABEL = { bnb: 'B&B', inn: 'Inn', hotel: 'Hotel', rental: 'Vacation rental' };
+const TYPE_LABEL = { bnb: 'B&B', inn: 'Inn', hotel: 'Hotel', rental: 'Vacation rental', camp: 'Campground' };
 
 /* Packaged inn-to-inn tours. Each is a preset for the trip engine plus a
    per-person package price (double occupancy). Day counts and daily
    mileage are computed from the engine so they always match the itinerary. */
 const TOURS = [
-  { id: 'weekend', name: 'Norwottuck Weekend', route: 'Northampton to Belchertown', start: 'northampton', end: 'belchertown', mpd: 10, mode: 'walk', rating: 'Easy', price: 495, single: 120, bikeRental: 65, meals: '1 breakfast · 2 packed lunches', groupMax: 14, scene: 'walker',
+  { id: 'weekend', name: 'Norwottuck Weekend', route: 'Northampton to Belchertown', start: 'northampton', end: 'belchertown', mpd: 10, mode: 'walk', rating: 'Easy · first trip friendly', price: 495, single: 120, bikeRental: 65, meals: '1 breakfast · 2 packed lunches', groupMax: 14, scene: 'walker',
     overview: 'Two days on the flattest, best-loved miles of the trail: across the Connecticut River on the 1887 rail bridge, through Hadley farm stands to a farmhouse inn in Amherst, then on to the Belchertown common where the paved miles end.',
     highlights: ['1,492-foot Connecticut River rail bridge', 'Hadley farm stands and cider donuts', 'A Belchertown B&B whose innkeeper draws you the map east', 'Quabbin Reservoir overlook spur'],
     departures: ['2026-09-19', '2026-09-26', '2026-10-10', '2026-10-17'],
@@ -395,4 +437,27 @@ const LODGING_STORY = {
   charlesriver: {                          highlights: ['Moody Street restaurant district at the door', 'Commuter rail one stop away for the trip home', 'Sixty rooms for large groups', 'Breakfast from 6:00'] },
   alewife:      {                          highlights: ['Self check-in lofts with a kitchen in every unit', 'Red Line downstairs for anywhere in the city', 'Short ride from the Boston end of the trail', 'Laundry in the building'] }
 };
-LODGING.forEach(l => Object.assign(l, LODGING_STORY[l.id] || {}));
+const ACCESS = {
+  roundhouse: 'Elevator, step-free entrance, two accessible rooms', paradise: 'Three steps to the porch; one ground-floor room', norwottuck: 'Ground-floor rooms in the barn wing, step-free', jabish: 'Ground-floor room with roll-in shower',
+  millst: 'Elevator and accessible rooms; level entry from the street', wareriver: 'Two steps at the door; bedrooms upstairs', maplehill: 'Four porch steps; two ground-floor rooms', barrecommon: 'Steps at entry; rooms on two floors',
+  trailside: 'Step-free from the trail; one accessible room', eaglelake: 'Lakefront cabins are step-free; lodge rooms upstairs', wachusett: 'Hillside; steps at entry', centralmass: 'Elevator; two accessible rooms',
+  nashua: 'Elevator and four accessible rooms', assabet: 'Elevator; level entry from the river walk', hopbrook: 'Historic house; steps at entry, low doorways', charlesriver: 'Elevator and six accessible rooms',
+  alewife: 'Elevator; step-free units', warerivercamp: 'Level gravel paths; accessible restroom', wachusettpines: 'Cabins have a step; level tent loop', assabetcamp: 'Walk-in sites, uneven ground'
+};
+const CAMP_STORY = {
+  warerivercamp: { local: true, highlights: ['Lean-tos so you can travel without a tent', 'Hot showers and a coin laundry', 'Covered cook shelter with stoves', 'Trail at the back gate'] },
+  wachusettpines: { local: true, highlights: ['Heated camping cabins that sleep four', 'Pine shade at the top of the Wachusett grade', 'Bike wash and fire rings', 'Half a mile from the Rutland summit bench'] },
+  assabetcamp: { local: true, highlights: ['Town-run, twelve walk-in riverside sites', 'Locked bike cage', 'A mile from Hudson restaurants and brewery', 'Composting toilets and potable water'] }
+};
+Object.assign(LODGING_STORY, CAMP_STORY);
+LODGING.forEach(l => Object.assign(l, LODGING_STORY[l.id] || {}, { access: ACCESS[l.id] || 'Ask the host about step-free access' }));
+
+/* Education cards: history, ecology, etiquette, maintenance, safety. */
+const LEARN = [
+  { icon: 'flag', title: 'The line itself', text: 'The Massachusetts Central Railroad opened in 1887 and ran Boston to Northampton until the 1938 hurricane broke it. Every depot town on this route was a station.' },
+  { icon: 'map', title: 'Reservoir country', text: 'The Quabbin and Wachusett reservoirs supply Boston\'s water. The trail skirts protected watershed; stay on the path and pack out what you carry in.' },
+  { icon: 'users', title: 'Trail etiquette', text: 'Keep right, pass left with a bell or a word, yield to walkers and horses, and slow through town centers and crossings.' },
+  { icon: 'bike', title: 'Roadside repairs', text: 'Carry a tube, levers, a mini pump, and a multi-tool. Bike shops on the map can finish what you start, and a few will tune up overnight.' },
+  { icon: 'shield', title: 'Weather and daylight', text: 'New England weather turns fast. Check the forecast each morning, carry a layer, and plan to be at your inn an hour before dark.' },
+  { icon: 'wifi', title: 'When there is no signal', text: 'Stretches of the Ware River Valley and the Highlands have no coverage. Download Trail Mode, note the nearest mile marker, and tell your inn your plan.' }
+];

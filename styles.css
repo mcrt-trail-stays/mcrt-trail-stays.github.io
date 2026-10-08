@@ -57,6 +57,7 @@ input,select,textarea{font:inherit;color:var(--ink)}
 .nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .nav-in{display:flex;align-items:center;gap:20px;min-height:66px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--forest-ink);font-family:var(--display);font-weight:700;font-size:1.2rem;letter-spacing:-.01em}
+.brand-org{font-family:var(--body);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-left:8px;align-self:center}
 .brand-mark{width:34px;height:34px;border-radius:8px;background:var(--forest);display:grid;place-items:center;color:#fff}
 .nav-links{display:flex;gap:4px;margin-left:8px}
 .nav-links a{padding:10px 12px;border-radius:8px;text-decoration:none;font-weight:600;color:var(--charcoal)}
@@ -351,7 +352,7 @@ footer .fine{margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,
 @container app (max-width: 860px){
   .wrap{width:min(1180px,100% - 32px)}
   .section{padding:40px 0}
-  .nav-links,.nav-right .trip-pill{display:none}
+  .nav-links,.nav-right .trip-pill,.brand-org{display:none}
   .nav-toggle{display:grid;place-items:center;margin-left:auto}
   .nav-drawer{flex-direction:column;padding:4px 0 12px;border-top:1px solid var(--line)}
   .nav-drawer.open{display:flex}

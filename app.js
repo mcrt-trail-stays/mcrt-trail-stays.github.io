@@ -172,7 +172,7 @@ function planTrip(params, keep) {
   state.trip = trip; save();
   return trip;
 }
-function roomsFor(t, l) { return l.type === 'rental' ? 1 : Math.max(1, Math.ceil((t.travelers || 2) / 2)); }
+function roomsFor(t, l) { return l.type === 'rental' ? 1 : l.type === 'camp' ? Math.max(1, Math.ceil((t.travelers || 2) / 4)) : Math.max(1, Math.ceil((t.travelers || 2) / 2)); }
 function tripNights(t) { return t.days.filter(d => d.lodgingId); }
 function tripCost(t) {
   const nights = tripNights(t);
@@ -275,6 +275,7 @@ function fitScore(l, mile, date, t) {
   s += (l.rating - 4.3) * 4;
   if (l.type === 'bnb' || l.type === 'inn') s += 2.2; else if (l.local) s += 1.2;
   if (t && t.mode === 'walk' && l.dist <= 0.5) s += 0.8;
+  if (t && Number(t.mpd) <= 10 && /step-free|elevator|accessible/i.test(l.access || '')) s += 1.0;
   if (date && avail(l.id, date) === 0) s -= 100;
   return s;
 }
@@ -282,7 +283,7 @@ function recommend(mile, date, t, radius) {
   return LODGING.filter(l => Math.abs(l.mile - mile) <= (radius || 4))
     .sort((a, b) => fitScore(b, mile, date, t) - fitScore(a, mile, date, t));
 }
-const TYPE_WORD = { bnb: 'B&amp;B', inn: 'Inn', hotel: 'Hotel', rental: 'Rental' };
+const TYPE_WORD = { bnb: 'B&amp;B', inn: 'Inn', hotel: 'Hotel', rental: 'Rental', camp: 'Campground' };
 function badgeList(l) {
   const b = [['map', `${l.dist} mi from Trail`]];
   if (l.amen.breakfast) b.push(['coffee', 'Breakfast Included']);
@@ -293,6 +294,7 @@ function badgeList(l) {
   if (l.dist <= 0.5 && l.amen.breakfast) b.push(['walk', 'Great for Walkers']);
   if (l.est) b.push(['home', `Historic · ${l.est}`]);
   if (l.amen.pets) b.push(['paw', 'Pets Welcome']);
+  if (/step-free|elevator|accessible/i.test(l.access || '')) b.push(['check', 'Step-free Access']);
   return b;
 }
 function badgesHTML(l, max) {
@@ -329,6 +331,7 @@ function plannerForm(compact) {
         <input type="number" id="f-custom" data-form="mpd" min="5" max="60" step="1" value="${f.mpd}" placeholder="Miles per day" ${f.custom ? '' : 'hidden'} style="margin-top:6px" aria-label="Custom miles per day"></div>
     </div>
     <button class="btn btn-primary btn-block" type="submit">Plan My Trail Trip ${icon('arrow')}</button>
+    <p class="small muted" style="margin-top:10px">First multi-day trip, or traveling with someone who needs short days? Choose 10 miles and we'll keep every stop close, show step-free stays first, and note where e-bikes can be rented.</p>
   </form>`;
 }
 
@@ -570,7 +573,7 @@ function secJoin() {
   const featured = ['trailside', 'maplehill', 'norwottuck', 'paradise'].map(byId);
   const exampleBag = 3 * BAG_RATE;
   return `<section class="section"><div class="wrap">
-    <div class="cta-band"><div><p class="eyebrow">For lodging operators</p><h2>Own an inn along the trail? Join the network.</h2><p>Keep your own booking system. We sync your calendar, send you multi-night trail travelers, and tell your story the way guests remember it.</p></div><a class="btn btn-forest" href="#join">Join the Network ${icon('arrow')}</a></div>
+    <div class="cta-band"><div><p class="eyebrow">For lodging providers</p><h2>Own a campground, B&amp;B, inn, or rental along the trail? List it.</h2><p>Listing is free and open to every provider on the route. Keep your own booking system; we sync your calendar, send you multi-night trail travelers, and tell your story the way guests remember it.</p></div><a class="btn btn-forest" href="#join">List your property ${icon('arrow')}</a></div>
   </div></section>`;
 }
 
@@ -658,16 +661,45 @@ function secToursD() {
 }
 function secCircle() {
   return `<section class="section" style="background:var(--paper)"><div class="wrap">
-    <div class="circle"><div><p class="eyebrow">The Trail Circle</p><h2>Stay unique. Stay loyal. Stay in the Circle.</h2><p class="muted" style="margin-top:8px;max-width:52ch">Every night at a member inn or B&amp;B counts as a stay. Book here and it's logged for you; walk in off the trail and scan the card at the desk. No password, no app.</p></div>
+    <div class="circle"><div><p class="eyebrow">The Trail Circle</p><h2>Stay local. Stay again. Stay in the Circle.</h2><p class="muted" style="margin-top:8px;max-width:52ch">Every night at any listed inn, B&amp;B, campground, or rental counts as a stay. Book here and it's logged for you; walk in off the trail and scan the card at the desk. No password, no app. Run by the association, not by the businesses.</p></div>
     <div class="circle-steps">${[['1', 'Stay at a member inn', 'Any night, any trip, booked here or at the door.'], ['2', 'Collect five stays', 'Stays never expire. Check your progress from the email we send after each one.'], ['3', 'Earn a gift certificate', '$75 for five stays, $125 for five different inns. Good at any member property for five years.']].map(x => `<div><b class="n">${x[0]}</b><h3>${x[1]}</h3><p>${x[2]}</p></div>`).join('')}</div></div>
   </div></section>`;
 }
-const isCircleMember = l => l.type === 'bnb' || l.type === 'inn' || !!l.local;
+function secLearn() {
+  return `<section class="section"><div class="wrap">
+    <div class="section-head"><div><p class="eyebrow">Know the trail</p><h2>The line, the land, and how to travel it well</h2><p>Short reads from the association on the railroad this trail follows, the watershed it crosses, and the habits that keep a multi-day trip safe and pleasant.</p></div></div>
+    <div class="grid-3">${LEARN.map(c => `<div class="benefit">${icon(c.icon)}<h3>${esc(c.title)}</h3><p>${esc(c.text)}</p></div>`).join('')}</div>
+  </div></section>`;
+}
+function secMission() {
+  return `<section class="section" style="background:var(--paper)"><div class="wrap">
+    <div class="section-head"><div><p class="eyebrow">About ${ORG.short}</p><h2>A nonprofit association of the places you'll sleep</h2><p>${esc(ORG.mission)}</p></div><a class="btn btn-outline" href="#about">How the association works</a></div>
+    <div class="grid-3">${ORG.principles.slice(0, 3).map(x => `<div class="benefit">${icon('check')}<h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></div>`).join('')}</div>
+  </div></section>`;
+}
+function viewAbout() {
+  return `<section class="section" style="padding-top:28px"><div class="wrap">
+    <p class="eyebrow">About ${ORG.short}</p><h2>${esc(ORG.name)}</h2>
+    <p class="lede" style="max-width:68ch">${esc(ORG.mission)}</p>
+    <p class="muted" style="margin-top:12px;max-width:68ch">We help communities shape trail-based journey tourism by coordinating accommodations and traveler services, supporting locally owned businesses, creating opportunities for residents, and preserving each community's character. Through regional collaboration we aim to strengthen local economies, connect visitors with the people and places along the route, and advance a sustainable network of trails that benefits both travelers and the communities that welcome them.</p>
+    <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">How we work</p><h2>Six commitments</h2></div></div>
+    <div class="grid-3">${ORG.principles.map(x => `<div class="benefit">${icon('check')}<h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></div>`).join('')}</div>
+    <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">Why it matters</p><h2>What a trail trip does for a town</h2></div></div>
+    <div class="grid-2">
+      <div class="benefit">${icon('walk')}<h3>Public health</h3><p>Low-impact walking and cycling with fewer barriers: a bed at the end of every day, bags moved for you, and a route you can take at your own pace.</p></div>
+      <div class="benefit">${icon('home')}<h3>Rural economies</h3><p>Journey travelers eat, sleep, and shop in the small towns the railroad built and the highway bypassed.</p></div>
+      <div class="benefit">${icon('map')}<h3>Sustainable travel</h3><p>Car-free trips by rail and trail, with commuter rail at both ends of the line.</p></div>
+      <div class="benefit">${icon('shield')}<h3>Partnership with the state</h3><p>Working with the Massachusetts Office of Travel &amp; Tourism and trail agencies to promote and monitor public use of state-maintained rail trails.</p></div>
+    </div>
+    <div class="cta-band" style="margin-top:36px"><div><p class="eyebrow">Contact</p><h2 style="font-size:1.5rem">${esc(ORG.site)}</h2><p>${esc(ORG.address)} · <a href="mailto:${ORG.email}">${esc(ORG.email)}</a> · ${esc(ORG.phone)}</p></div><a class="btn btn-forest" href="#join">List your property ${icon('arrow')}</a></div>
+  </div></section>`;
+}
+const isCircleMember = l => true; /* every listed provider is a member; no one pays for placement */
 function viewHome() {
-  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
-  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
-  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secCircle() + secResources() + secJoin();
-  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secCircle() + secResources() + secJoin();
+  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
+  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
+  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
+  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
 }
 
 function viewMap() {
@@ -761,8 +793,10 @@ const CATS = [
   { id: 'indie', label: 'B&amp;Bs &amp; Inns', icon: 'home', test: l => l.type === 'bnb' || l.type === 'inn' },
   { id: 'hotel', label: 'Hotels', icon: 'bed', test: l => l.type === 'hotel' },
   { id: 'rental', label: 'Vacation Rentals', icon: 'users', test: l => l.type === 'rental' },
+  { id: 'camp', label: 'Campgrounds', icon: 'flag', test: l => l.type === 'camp' },
   { id: 'all', label: 'All Stays', icon: 'list', test: () => true }
 ];
+const ALL_CAT = CATS.length - 1;
 function viewStays() {
   const d = state.dir;
   const base = LODGING.filter(l => {
@@ -773,7 +807,7 @@ function viewStays() {
     if (d.date && avail(l.id, d.date) === 0) return false;
     return true;
   });
-  const cat = CATS.find(c => c.id === d.cat) || CATS[3];
+  const cat = CATS.find(c => c.id === d.cat) || CATS[ALL_CAT];
   const list = base.filter(cat.test).sort((a, b) => a.mile - b.mile);
   const tabs = `<div class="cat-tabs" role="tablist">${CATS.map((c, i) => `<button role="tab" aria-selected="${c.id === d.cat}" class="${c.id === d.cat ? 'on' : ''}${i === 0 ? ' lead' : ''}" data-act="dir-cat" data-val="${c.id}">${icon(c.icon)}${c.label}<span class="n num">${base.filter(c.test).length}</span></button>`).join('')}</div>`;
   const check = (group, val, label, set) => `<label class="check"><input type="checkbox" data-dir="${group}" value="${val}" ${set.has(val) ? 'checked' : ''}>${label}</label>`;
@@ -796,7 +830,7 @@ function viewStays() {
     }).join('') : '<div class="empty"><b>No stays match those filters.</b><span>Try a wider distance or a higher nightly rate.</span><button class="btn btn-outline btn-sm" data-act="dir-reset">Reset filters</button></div>');
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <p class="eyebrow">Places to stay</p><h2>Every stay along the Mass Central Rail Trail</h2>
-    <p class="muted" style="margin:6px 0 18px">${LODGING.length} inns, B&amp;Bs, hotels and rentals along the route, west to east by trail mile. The fastest way to meet them is to <a href="#plan">plan a trip</a> and let each day's stop introduce its neighbors.</p>
+    <p class="muted" style="margin:6px 0 18px">${LODGING.length} inns, B&amp;Bs, campgrounds, hotels and rentals along the route, west to east by trail mile. Every provider along the trail is listed; nobody pays for placement. The fastest way to meet them is to <a href="#plan">plan a trip</a> and let each day's stop introduce its neighbors.</p>
     ${tabs}
     <div class="dir-layout">${filters}
       <div><div class="dir-top"><div><b class="num">${list.length}</b> <span class="muted">${list.length === 1 ? 'stay' : 'stays'}</span> <button class="btn btn-light btn-sm filters-toggle" data-act="filters-toggle" style="margin-left:8px">${icon('layers')} Filters</button></div>
@@ -824,6 +858,7 @@ function viewStay(id) {
           <div class="${l.amen.bike ? '' : 'no'}">${icon('bike')}<span>${l.amen.bike ? 'Secure bike storage' : 'Outdoor bike locking'}</span></div>
           <div class="${l.amen.luggage ? '' : 'no'}">${icon('bag')}<span>${l.amen.luggage ? 'Luggage transfer' : 'Bags to nearest hub'}</span></div>
         </div>
+        <p class="small" style="margin-top:10px"><b>Getting around:</b> ${esc(l.access)}.</p>
         <div style="margin-top:12px">${badgesHTML(l, 6)}</div>
 
         <h2>Why trail travelers love it</h2>
@@ -840,7 +875,7 @@ function viewStay(id) {
         <h2>Rooms</h2><div class="rooms">${l.roomTypes.map(r => `<div class="room"><div><b>${esc(r.name)}</b><span class="muted">Sleeps ${r.sleeps}</span></div><span class="from num">${money(r.rate)} / night</span></div>`).join('')}</div>
 
         <h2>The details</h2>
-        <dl class="dl"><dt>Breakfast</dt><dd>${esc(l.breakfast)}</dd><dt>Bike storage</dt><dd>${l.amen.bike ? 'Secure indoor storage with basic tools' : 'Outdoor locking only'}</dd><dt>Luggage transfer</dt><dd>${l.amen.luggage ? 'Participates in Valley Bag Shuttle. Bags out by 9 AM, delivered by 3 PM.' : 'Not a transfer partner. Bags can be delivered to the nearest hub.'}</dd><dt>Laundry</dt><dd>${l.amen.laundry ? 'Guest laundry on site' : 'Not available'}</dd><dt>Pets</dt><dd>${l.amen.pets ? 'Welcome' : 'Not permitted'}</dd><dt>Check-in / checkout</dt><dd>${esc(l.checkin)} / ${esc(l.checkout)}</dd><dt>Address</dt><dd>${esc(l.address)}</dd><dt>Phone</dt><dd><a href="tel:${l.phone.replace(/\D/g, '')}">${esc(l.phone)}</a></dd><dt>Website</dt><dd><a href="https://${l.web}" target="_blank" rel="noopener">${esc(l.web)}</a></dd></dl>
+        <dl class="dl"><dt>Breakfast</dt><dd>${esc(l.breakfast)}</dd><dt>Bike storage</dt><dd>${l.amen.bike ? 'Secure indoor storage with basic tools' : 'Outdoor locking only'}</dd><dt>Luggage transfer</dt><dd>${l.amen.luggage ? 'Participates in Valley Bag Shuttle. Bags out by 9 AM, delivered by 3 PM.' : 'Not a transfer partner. Bags can be delivered to the nearest hub.'}</dd><dt>Accessibility</dt><dd>${esc(l.access)}</dd><dt>Laundry</dt><dd>${l.amen.laundry ? 'Guest laundry on site' : 'Not available'}</dd><dt>Pets</dt><dd>${l.amen.pets ? 'Welcome' : 'Not permitted'}</dd><dt>Check-in / checkout</dt><dd>${esc(l.checkin)} / ${esc(l.checkout)}</dd><dt>Address</dt><dd>${esc(l.address)}</dd><dt>Phone</dt><dd><a href="tel:${l.phone.replace(/\D/g, '')}">${esc(l.phone)}</a></dd><dt>Website</dt><dd><a href="https://${l.web}" target="_blank" rel="noopener">${esc(l.web)}</a></dd></dl>
       </div>
       <aside><div class="book-box">
         <div><span class="eyebrow" style="color:var(--muted)">Stay here</span><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><b style="font-size:1.05rem">${esc(l.name)}</b><span class="from">from ${money(l.rate)} / night</span></div></div>
@@ -971,10 +1006,10 @@ function viewTrailMode() {
 }
 
 function viewJoin() {
-  const benefits = [['users', 'Multi-night travelers', 'Trail trips average 3.4 nights. Guests arrive with the next inn already booked, so there is no bargaining over one-night minimums.'], ['sync', 'Keep your own system', 'Connect ResNexus, or share an iCal feed from any booking engine. Your calendar stays the source of truth.'], ['shield', 'No double bookings', 'Availability is read live at search and held for 12 minutes at checkout. Confirmed stays post back to your calendar instantly.'], ['print', 'Your story, told well', 'Your page leads with what makes your place memorable: the porch, the breakfast, the trail knowledge. Not a spec sheet.'], ['bag', 'Baggage network', 'Opt in to luggage transfer and the shuttle handles bags. You just receive and release them.'], ['map', 'On the map', 'A pin at your trail mile, your distance from the trail, and directions from the nearest trailhead.']];
+  const benefits = [['users', 'Multi-night travelers', 'Trail trips average 3.4 nights. Guests arrive with the next stay already booked, so there is no bargaining over one-night minimums.'], ['check', 'No fees, no favorites', 'Listing is free. We take no commission or referral fee, and no provider can pay for better placement. Travelers see every option near their stop.'], ['sync', 'Keep your own system', 'Connect ResNexus, or share an iCal feed from any booking engine. Your calendar stays the source of truth.'], ['shield', 'No double bookings', 'Availability is read live at search and held for 12 minutes at checkout. Confirmed stays post back to your calendar instantly.'], ['print', 'Your story, told well', 'Your page leads with what makes your place memorable: the porch, the breakfast, the trail knowledge. Not a spec sheet.'], ['bag', 'Baggage network', 'Opt in to luggage transfer and the shuttle handles bags. You just receive and release them.'], ['map', 'On the map', 'A pin at your trail mile, your distance from the trail, and directions from the nearest trailhead.']];
   return `<section class="section" style="padding-top:28px"><div class="wrap">
-    <div class="join-hero"><div><p class="eyebrow">For lodging operators</p><h2>Own an inn along the trail? Join the network.</h2><p class="muted" style="margin-top:10px;max-width:52ch">Trail Stays fills midweek rooms with walkers and cyclists who need a bed exactly where you are. You keep your booking system, your rates, and your guests.</p>
-      <div class="hero-stats" style="margin-top:20px"><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">${TRAIL.length}</b><span style="color:var(--muted)">route miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
+    <div class="join-hero"><div><p class="eyebrow">For lodging providers</p><h2>Own a campground, B&amp;B, inn, or rental along the trail? List it.</h2><p class="muted" style="margin-top:10px;max-width:52ch">${ORG.short} is a nonprofit association of the places trail travelers sleep. Listing is free, every provider on the route is included, and we never take a referral fee or sell placement. You keep your booking system, your rates, and your guests.</p>
+      <div class="hero-stats" style="margin-top:20px"><div><b style="color:var(--forest)">$0</b><span style="color:var(--muted)">to list, always</span></div><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">${TRAIL.length}</b><span style="color:var(--muted)">route miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
       <div class="card"><div class="card-img" style="background-image:${scene('join', 'inn')};aspect-ratio:16/11"></div></div></div>
     <div class="grid-3" style="margin-top:36px">${benefits.map(b => `<div class="benefit">${icon(b[0])}<h3>${b[1]}</h3><p>${b[2]}</p></div>`).join('')}</div>
     <div class="section-head" style="margin-top:44px"><div><p class="eyebrow">How the calendar sync works</p><h2>Your calendar, read live and written back</h2></div></div>
@@ -984,24 +1019,25 @@ function viewJoin() {
       <div class="field"><label for="j-name">Property name</label><input id="j-name" required placeholder="Maple Hill Inn"></div>
       <div class="field"><label for="j-town">Town</label><select id="j-town">${TOWNS.map(t => `<option>${esc(t.name)}</option>`).join('')}</select></div>
       <div class="field"><label for="j-type">Property type</label><select id="j-type">${Object.values(TYPE_LABEL).map(v => `<option>${v}</option>`).join('')}</select></div>
+      <div class="field"><label for="j-access">Accessibility</label><select id="j-access"><option>Step-free entrance and ground-floor rooms</option><option>Ground-floor rooms, steps at entry</option><option>Elevator</option><option>Stairs only</option></select></div>
       <div class="field"><label for="j-rooms">Number of rooms</label><input id="j-rooms" type="number" min="1" placeholder="8"></div>
       <div class="field"><label for="j-dist">Distance from trail (miles)</label><input id="j-dist" type="number" step="0.1" min="0" placeholder="0.5"></div>
       <div class="field"><label for="j-sys">Booking system</label><select id="j-sys"><option>ResNexus</option><option>Cloudbeds</option><option>Little Hotelier</option><option>ThinkReservations</option><option>Airbnb / VRBO calendar</option><option>Other / paper calendar</option></select></div>
       <div class="field"><label for="j-contact">Contact name</label><input id="j-contact" required></div>
       <div class="field"><label for="j-email">Email</label><input id="j-email" type="email" required></div>
-      <div class="field span2"><label>Services you can offer</label><div style="display:flex;gap:16px;flex-wrap:wrap">${['Breakfast', 'Secure bike storage', 'Laundry', 'Pet friendly', 'Luggage transfer'].map(a => `<label class="check"><input type="checkbox">${a}</label>`).join('')}</div></div>
+      <div class="field span2"><label>Services you can offer</label><div style="display:flex;gap:16px;flex-wrap:wrap">${['Breakfast', 'Secure bike storage', 'Laundry', 'Pet friendly', 'Luggage transfer', 'E-bike charging', 'Tent sites'].map(a => `<label class="check"><input type="checkbox">${a}</label>`).join('')}</div></div>
       <div class="span2"><button class="btn btn-primary" type="submit">Submit application ${icon('arrow')}</button></div>
     </form>`}
   </div></section>`;
 }
 
 /* ---------- shell ---------- */
-const NAV = [['plan', 'Plan a Trip'], ['tours', 'Inn-to-Inn Tours'], ['map', 'Trail Map'], ['stays', 'Stays'], ['trail-mode', 'Trail Mode'], ['join', 'For Innkeepers']];
+const NAV = [['plan', 'Plan a Trip'], ['tours', 'Inn-to-Inn Tours'], ['map', 'Trail Map'], ['stays', 'Stays'], ['trail-mode', 'Trail Mode'], ['about', 'About'], ['join', 'List Your Property']];
 function navHTML() {
   const r = state.route.name; const t = state.trip; const cost = t ? tripCost(t) : null;
   const links = NAV.map(n => `<a href="#${n[0]}" class="${r === n[0] || (n[0] === 'stays' && r === 'stay') || (n[0] === 'tours' && r === 'tour') ? 'active' : ''}">${n[1]}</a>`).join('');
   return `<header class="nav"><div class="wrap nav-in">
-    <a class="brand" href="#home"><span class="brand-mark">${icon('flag')}</span>Mass Central Trail Stays</a>
+    <a class="brand" href="#home"><span class="brand-mark">${icon('flag')}</span>Mass Central Trail Stays<span class="brand-org">by ${ORG.short}</span></a>
     <nav class="nav-links" aria-label="Main">${links}</nav>
     <div class="nav-right">${t ? `<a class="trip-pill" href="#plan">${icon('moon')} My Trip <span class="count">${cost.nights} ${cost.nights === 1 ? 'night' : 'nights'}</span></a>` : '<a class="trip-pill" href="#plan">Plan a Trip</a>'}<button class="nav-toggle" data-act="drawer" aria-label="Menu" aria-expanded="${state.ui.drawer}">${icon(state.ui.drawer ? 'close' : 'menu')}</button></div>
     <nav class="nav-drawer${state.ui.drawer ? ' open' : ''}" aria-label="Mobile">${links}<a href="#plan">${t ? `My Trip · ${cost.nights} nights · ${money(cost.total)}` : 'Plan a Trip'}</a></nav>
@@ -1017,11 +1053,11 @@ function mobileBarHTML() {
 }
 function footerHTML() {
   return `<footer><div class="wrap"><div class="cols">
-    <div><div class="brand" style="color:#fff"><span class="brand-mark" style="background:var(--ochre);color:var(--forest-ink)">${icon('flag')}</span>Mass Central Trail Stays</div><p class="small" style="margin-top:12px;max-width:40ch">Lodging and trip planning for the Mass Central Rail Trail, from the Connecticut River to Boston Harbor. A network of independently owned inns, B&Bs, hotels and rentals.</p></div>
+    <div><div class="brand" style="color:#fff"><span class="brand-mark" style="background:var(--ochre);color:var(--forest-ink)">${icon('flag')}</span>Mass Central Trail Stays</div><p class="small" style="margin-top:12px;max-width:40ch">Lodging and trip planning for the Mass Central Rail Trail, from the Connecticut River to Boston Harbor. A project of the ${esc(ORG.name)}, a nonprofit. Every provider along the trail is listed. No referral fees, no paid placement.</p><p class="small" style="margin-top:10px">${esc(ORG.address)}<br><a href="mailto:${ORG.email}" style="display:inline;padding:0">${esc(ORG.email)}</a> · ${esc(ORG.phone)}</p></div>
     <div><h4>Plan</h4><a href="#plan">Trip planner</a><a href="#map">Trail map</a><a href="#stays">All stays</a><a href="#trail-mode">Trail Mode (offline)</a></div>
     <div><h4>Trail</h4>${RESOURCES.slice(0, 4).map(r => `<a href="${r.url}" target="_blank" rel="noopener">${esc(r.name)}</a>`).join('')}</div>
-    <div><h4>Network</h4><a href="#join">Join as an innkeeper</a><a href="#join">Baggage transfer partners</a><a href="#home">Contact</a></div>
-  </div><div class="fine">Prototype for RFP review. Route alignment and mileage follow the MCRT full route on Ride with GPS (${TRAIL.length} mi). Trail surface and status reference: MassTrailTracker.com, an independent statewide trail map built by Danny in Boston. Parking and restroom points are real; lodging properties, shops and restaurants are illustrative examples, not real businesses. Booking engine integration: ResNexus.</div></div></footer>`;
+    <div><h4>Association</h4><a href="#about">About ${ORG.short}</a><a href="#join">List your property</a><a href="#join">Baggage transfer partners</a><a href="${ORG.url}" target="_blank" rel="noopener">${ORG.site}</a></div>
+  </div><div class="fine">Prototype for ${ORG.short} review. Route alignment and mileage follow the MCRT full route on Ride with GPS (${TRAIL.length} mi). Trail surface and status reference: MassTrailTracker.com, an independent statewide trail map built by Danny in Boston. Parking and restroom points are real; lodging properties, shops and restaurants are illustrative examples, not real businesses. Booking engine integration: ResNexus.</div></div></footer>`;
 }
 function shell(view) {
   return navHTML() + `<main id="view">${view}</main>` + footerHTML() + '<div class="toast-host"></div>' + mobileBarHTML();
@@ -1041,6 +1077,7 @@ function render(scrollTop) {
     case 'confirmation': view = viewConfirm(); break;
     case 'trail-mode': view = viewTrailMode(); break;
     case 'join': view = viewJoin(); break;
+    case 'about': view = viewAbout(); break;
     default: view = viewHome();
   }
   app.innerHTML = shell(view);
