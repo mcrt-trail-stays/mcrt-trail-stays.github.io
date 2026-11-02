@@ -1049,7 +1049,7 @@ const CAMP_STORY = {
   assabetcamp: { local: true, highlights: ['Town-run, twelve walk-in riverside sites', 'Locked bike cage', 'A mile from Hudson restaurants and brewery', 'Composting toilets and potable water'] }
 };
 Object.assign(LODGING_STORY, CAMP_STORY);
-LODGING.forEach(l => Object.assign(l, LODGING_STORY[l.id] || {}, { access: ACCESS[l.id] || 'Ask the host about step-free access' }));
+LODGING.forEach(l => Object.assign(l, LODGING_STORY[l.id] || {}, { access: ACCESS[l.id] || 'Ask the host about stairs and room locations' }));
 
 /* The trail network: two long trails meeting in Northampton, where rail service exists. */
 const NETWORK = [
