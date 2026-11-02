@@ -43,7 +43,7 @@ function fmt(iso, style) {
 }
 function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
-/* ---------- live availability (simulated ResNexus feed) ---------- */
+/* ---------- live availability (simulated ThinkReservations feed) ---------- */
 function avail(id, iso) {
   const p = byId(id); if (!p || !iso) return null;
   const h = hash(id + iso);
@@ -258,7 +258,7 @@ const AMEN = { breakfast: ['Breakfast', 'coffee'], bike: ['Bike storage', 'bike'
 function amenHTML(l, max) {
   return '<div class="amen">' + Object.keys(AMEN).filter(k => l.amen[k]).slice(0, max || 9).map(k => `<span>${icon(AMEN[k][1])}${AMEN[k][0]}</span>`).join('') + '</div>';
 }
-function stars(r) { return `<span class="stars" aria-label="${r} out of 5">${'★'.repeat(Math.round(r))}</span> <b class="num">${r.toFixed(1)}</b>`; }
+function stars(r) { if (!r) return '<span class="small muted">New listing</span>'; return `<span class="stars" aria-label="${r} out of 5">${'★'.repeat(Math.round(r))}</span> <b class="num">${r.toFixed(1)}</b>`; }
 
 /* Traveler-fit ranking: how well a stay suits this stop, this night, this trip.
    Scored on distance, breakfast, bike storage, luggage transfer, host trail
@@ -272,7 +272,7 @@ function fitScore(l, mile, date, t) {
   if (l.amen.luggage) s += t && t.baggage ? 1.6 : 0.6;
   if (l.hosts) s += 0.8;
   if (l.est) s += 0.5;
-  s += (l.rating - 4.3) * 4;
+  s += ((l.rating || 4.6) - 4.3) * 4;
   if (l.type === 'bnb' || l.type === 'inn') s += 2.2; else if (l.local) s += 1.2;
   if (t && t.mode === 'walk' && l.dist <= 0.5) s += 0.8;
   if (t && Number(t.mpd) <= 10 && /step-free|elevator|accessible/i.test(l.access || '')) s += 1.0;
@@ -287,7 +287,8 @@ const TYPE_WORD = { bnb: 'B&amp;B', inn: 'Inn', hotel: 'Hotel', rental: 'Rental'
 function badgeList(l) {
   const b = [['map', `${l.dist} mi from Trail`]];
   if (l.amen.breakfast) b.push(['coffee', 'Breakfast Included']);
-  if (l.rating >= 4.8 && l.reviews >= 60) b.push(['star', 'Trail Favorite']);
+  if (l.real) b.push(['check', 'Listed Property']);
+  if (l.rating >= 4.8 && l.reviews >= 30) b.push(['star', 'Trail Favorite']);
   if (l.hosts) b.push(['flag', 'Hosts Know the Trail']);
   if (l.amen.luggage) b.push(['bag', 'Luggage Transfer']);
   if (l.amen.bike) b.push(['bike', 'Bike Friendly']);
@@ -556,7 +557,7 @@ function secBaggage() {
   const exampleBag = 3 * BAG_RATE;
   return `<section class="section"><div class="wrap">
     <div class="baggage">
-      <div><p class="eyebrow" style="color:var(--gold-light)">Baggage transfer</p><h2>Hike or ride luggage-free.</h2><p>Add luggage transfer to any trip and carry only what you need for the day.</p><blockquote>"We'll move your bags from tonight's inn to tomorrow night's inn."</blockquote><p class="small" style="margin-top:14px">Bags leave by 9 AM and are waiting at your next inn by 3 PM. One flat rate per transfer, per party, up to two bags per traveler.</p></div>
+      <div><p class="eyebrow" style="color:var(--gold-light)">Baggage transfer</p><h2>Hike or ride luggage-free.</h2><p>Add luggage transfer to any trip and carry only what you need for the day.</p><blockquote>"We'll move your bags from tonight's inn to tomorrow night's inn."</blockquote><p class="small" style="margin-top:14px">Bags leave by 9 AM and are waiting at your next inn by 3 PM. One flat rate per transfer, per party, up to two bags per traveler. Modeled on the inn-to-inn shuttle services that already run on the Great Allegheny Passage and the Ohio trails.</p></div>
       <div class="bag-demo"><b>Example: 3-night trip, 2 travelers</b><div class="line"><span>Night 1 → Night 2 transfer</span><span>${money(BAG_RATE)}</span></div><div class="line"><span>Night 2 → Night 3 transfer</span><span>${money(BAG_RATE)}</span></div><div class="line"><span>Trailhead → Night 1 transfer</span><span>${money(BAG_RATE)}</span></div><div class="line total"><span>Baggage transfer</span><span>${money(exampleBag)}</span></div><label class="toggle" style="margin-top:6px"><input type="checkbox" checked disabled><span><b>Add baggage transfer between accommodations</b><span>Toggled per trip in the planner</span></span></label></div>
     </div>
   </div></section>`;
@@ -665,6 +666,12 @@ function secCircle() {
     <div class="circle-steps">${[['1', 'Stay at a member inn', 'Any night, any trip, booked here or at the door.'], ['2', 'Collect five stays', 'Stays never expire. Check your progress from the email we send after each one.'], ['3', 'Earn a gift certificate', '$75 for five stays, $125 for five different inns. Good at any member property for five years.']].map(x => `<div><b class="n">${x[0]}</b><h3>${x[1]}</h3><p>${x[2]}</p></div>`).join('')}</div></div>
   </div></section>`;
 }
+function secNetwork() {
+  return `<section class="section" style="background:var(--paper)"><div class="wrap">
+    <div class="section-head"><div><p class="eyebrow">The network</p><h2>Two long trails, one hub with a train station</h2><p>${esc(HUB.note)}</p></div></div>
+    <div class="grid-2">${NETWORK.map(t => `<div class="benefit"><span class="tag ${t.id === 'mcrt' ? 'ochre' : ''}" style="align-self:flex-start;margin-bottom:8px">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="story" style="margin:6px 0">${esc(t.claim)}</p><div class="meta"><span>${esc(t.from)} → ${esc(t.to)}</span><span><b class="num">${t.miles}</b> miles</span><a href="${t.url}" target="_blank" rel="noopener">${esc(t.abbr)} site</a></div></div>`).join('')}</div>
+  </div></section>`;
+}
 function secLearn() {
   return `<section class="section"><div class="wrap">
     <div class="section-head"><div><p class="eyebrow">Know the trail</p><h2>The line, the land, and how to travel it well</h2><p>Short reads from the association on the railroad this trail follows, the watershed it crosses, and the habits that keep a multi-day trip safe and pleasant.</p></div></div>
@@ -684,6 +691,9 @@ function viewAbout() {
     <p class="muted" style="margin-top:12px;max-width:68ch">We help communities shape trail-based journey tourism by coordinating accommodations and traveler services, supporting locally owned businesses, creating opportunities for residents, and preserving each community's character. Through regional collaboration we aim to strengthen local economies, connect visitors with the people and places along the route, and advance a sustainable network of trails that benefits both travelers and the communities that welcome them.</p>
     <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">How we work</p><h2>Six commitments</h2></div></div>
     <div class="grid-3">${ORG.principles.map(x => `<div class="benefit">${icon('check')}<h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></div>`).join('')}</div>
+    <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">The network</p><h2>Two trails, one hub</h2><p>${esc(HUB.note)}</p></div></div>
+    <div class="grid-2">${NETWORK.map(t => `<div class="benefit"><span class="tag" style="align-self:flex-start;margin-bottom:8px">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p>${esc(t.claim)} ${esc(t.from)} to ${esc(t.to)}, ${t.miles} miles.</p></div>`).join('')}</div>
+    <p class="small muted" style="margin-top:14px;max-width:70ch">The directory starts with the association's founding properties. Massachusetts Department of Revenue lodging records show more than 400 registered short-term rentals and lodging operators in the 27 communities along the Mass Central line alone, and more than 500 across both trails; those records are the backbone the directory grows into.</p>
     <div class="section-head" style="margin-top:36px"><div><p class="eyebrow">Why it matters</p><h2>What a trail trip does for a town</h2></div></div>
     <div class="grid-2">
       <div class="benefit">${icon('walk')}<h3>Public health</h3><p>Low-impact walking and cycling with fewer barriers: a bed at the end of every day, bags moved for you, and a route you can take at your own pace.</p></div>
@@ -696,10 +706,10 @@ function viewAbout() {
 }
 const isCircleMember = l => true; /* every listed provider is a member; no one pays for placement */
 function viewHome() {
-  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
-  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
-  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
-  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secCircle() + secLearn() + secMission() + secResources() + secJoin();
+  if (VARIANT === 'd') return secHeroD() + secToursD() + secInns() + secHow() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secNetwork() + secLearn() + secMission() + secResources() + secJoin();
+  if (VARIANT === 'b') return secHeroB() + secInnsB() + secHow() + secTours() + secMapPreview() + secExplore() + secBaggage() + secCircle() + secNetwork() + secLearn() + secMission() + secResources() + secJoin();
+  if (VARIANT === 'c') return secHeroC() + secToursC() + secInns() + secHow() + secExplore() + secBaggage() + secCircle() + secNetwork() + secLearn() + secMission() + secResources() + secJoin();
+  return secHero() + secMapPreview() + secHow() + secInns() + secExplore() + secTours() + secBaggage() + secCircle() + secNetwork() + secLearn() + secMission() + secResources() + secJoin();
 }
 
 function viewMap() {
@@ -870,7 +880,7 @@ function viewStay(id) {
           <div class="meta"><span>Trail mile <b class="num">${l.mile}</b></span><span><b>${l.dist} mi</b> off the trail</span><span>${esc(sec.name)} section</span><span>Check-in <b>${esc(l.checkin)}</b></span></div>
           <p class="small muted" style="margin-top:10px">${icon('download')} These directions are saved in your offline Trail Mode download.</p></div></div>
 
-        <h2>About the property</h2><p>${esc(l.desc)}</p>
+        <h2>About the property</h2><p>${esc(l.desc)}</p>${l.policies ? `<p style="margin-top:10px"><b>Good to know:</b> ${esc(l.policies)}</p>` : ''}${l.source ? `<p class="small muted" style="margin-top:10px">${esc(l.source)}</p>` : ''}
 
         <h2>Rooms</h2><div class="rooms">${l.roomTypes.map(r => `<div class="room"><div><b>${esc(r.name)}</b><span class="muted">Sleeps ${r.sleeps}</span></div><span class="from num">${money(r.rate)} / night</span></div>`).join('')}</div>
 
@@ -959,7 +969,7 @@ function viewCheckout() {
           <div class="field"><label for="g-party">Travelers</label><input id="g-party" value="${t.travelers}" readonly></div>
           <div class="field span2"><label for="g-notes">Notes for the inns</label><textarea id="g-notes" placeholder="Dietary needs, late arrival, bike sizes for storage..."></textarea></div>
         </form></div>
-        <div class="co-section"><h2>Payment</h2><div class="pay">${icon('shield')} <b>Secure payment through the ResNexus booking engine.</b> Card details are entered on the payment step and are never stored by Trail Stays. Each inn receives its own reservation; you receive one receipt.</div>
+        <div class="co-section"><h2>Payment</h2><div class="pay">${icon('shield')} <b>Secure payment through ThinkReservations.</b> Card details are entered once on the payment step and never stored by Trail Stays. Each night is submitted to that inn's own ThinkReservations account as its own reservation, with the inn's deposit policy applied; you receive one receipt.</div>
           <p class="small muted" style="margin-top:12px">Cancellation: free up to 7 days before the first night. Each inn's policy applies after that and is shown on your confirmation.</p></div>
       </div>
       <aside><div class="co-box"><h3>Trip total</h3>
@@ -1006,14 +1016,15 @@ function viewTrailMode() {
 }
 
 function viewJoin() {
-  const benefits = [['users', 'Multi-night travelers', 'Trail trips average 3.4 nights. Guests arrive with the next stay already booked, so there is no bargaining over one-night minimums.'], ['check', 'No fees, no favorites', 'Listing is free. We take no commission or referral fee, and no provider can pay for better placement. Travelers see every option near their stop.'], ['sync', 'Keep your own system', 'Connect ResNexus, or share an iCal feed from any booking engine. Your calendar stays the source of truth.'], ['shield', 'No double bookings', 'Availability is read live at search and held for 12 minutes at checkout. Confirmed stays post back to your calendar instantly.'], ['print', 'Your story, told well', 'Your page leads with what makes your place memorable: the porch, the breakfast, the trail knowledge. Not a spec sheet.'], ['bag', 'Baggage network', 'Opt in to luggage transfer and the shuttle handles bags. You just receive and release them.'], ['map', 'On the map', 'A pin at your trail mile, your distance from the trail, and directions from the nearest trailhead.']];
+  const benefits = [['users', 'Multi-night travelers', 'Trail trips average 3.4 nights. Guests arrive with the next stay already booked, so there is no bargaining over one-night minimums.'], ['check', 'No fees, no favorites', 'Listing is free. We take no commission or referral fee, and no provider can pay for better placement. Travelers see every option near their stop.'], ['sync', 'Keep your own system', 'On ThinkReservations already? Connect in minutes. On ResNexus, Cloudbeds, or anything with an iCal feed? We sync that too. Your calendar stays the source of truth.'], ['shield', 'No double bookings', 'Availability is read live at search and held for 12 minutes at checkout. Confirmed stays post back to your calendar instantly.'], ['print', 'Your story, told well', 'Your page leads with what makes your place memorable: the porch, the breakfast, the trail knowledge. Not a spec sheet.'], ['bag', 'Baggage network', 'Opt in to luggage transfer and the shuttle handles bags. You just receive and release them.'], ['map', 'On the map', 'A pin at your trail mile, your distance from the trail, and directions from the nearest trailhead.']];
   return `<section class="section" style="padding-top:28px"><div class="wrap">
     <div class="join-hero"><div><p class="eyebrow">For lodging providers</p><h2>Own a campground, B&amp;B, inn, or rental along the trail? List it.</h2><p class="muted" style="margin-top:10px;max-width:52ch">${ORG.short} is a nonprofit association of the places trail travelers sleep. Listing is free, every provider on the route is included, and we never take a referral fee or sell placement. You keep your booking system, your rates, and your guests.</p>
       <div class="hero-stats" style="margin-top:20px"><div><b style="color:var(--forest)">$0</b><span style="color:var(--muted)">to list, always</span></div><div><b class="num" style="color:var(--forest)">${LODGING.length}</b><span style="color:var(--muted)">founding properties</span></div><div><b class="num" style="color:var(--forest)">${TRAIL.length}</b><span style="color:var(--muted)">route miles</span></div><div><b class="num" style="color:var(--forest)">${SECTIONS.length}</b><span style="color:var(--muted)">trail sections</span></div></div></div>
       <div class="card"><div class="card-img" style="background-image:${scene('join', 'inn')};aspect-ratio:16/11"></div></div></div>
     <div class="grid-3" style="margin-top:36px">${benefits.map(b => `<div class="benefit">${icon(b[0])}<h3>${b[1]}</h3><p>${b[2]}</p></div>`).join('')}</div>
     <div class="section-head" style="margin-top:44px"><div><p class="eyebrow">How the calendar sync works</p><h2>Your calendar, read live and written back</h2></div></div>
-    <div class="sync-diagram"><div class="node">Your booking system<span>ResNexus API or iCal feed</span></div><div class="arr">⇄</div><div class="node">Trail Stays availability<span>read at search, held 12 min at checkout</span></div><div class="arr">⇄</div><div class="node">Traveler's one checkout<span>your reservation posted back instantly</span></div></div>
+    <div class="sync-diagram"><div class="node">Your booking system<span>ThinkReservations API, or ResNexus / iCal sync</span></div><div class="arr">⇄</div><div class="node">Trail Stays availability<span>read live at search, held at checkout</span></div><div class="arr">⇄</div><div class="node">Traveler's one checkout<span>one reservation per inn, posted back instantly</span></div></div>
+    <p class="small muted" style="margin-top:10px;max-width:70ch">How it works under the hood: the ThinkReservations External API exposes availability, rates, rooms, and reservations per property, with OAuth or a restricted key the innkeeper controls. The platform runs an availability search for each night, then submits one reservation per inn with the guest's card tokenized once. Properties on other systems are read through their calendar feed and confirmed by the inn.</p>
     <div class="section-head" style="margin-top:44px"><div><p class="eyebrow">Apply</p><h2>Tell us about your property</h2><p>We reply within two business days and set up the calendar connection with you on a short call.</p></div></div>
     ${state.ui.joined ? `<div class="notice" style="background:var(--sage-pale);border-color:var(--sage);color:var(--forest-ink);padding:20px"><b>${icon('check')} Thanks, we have your application.</b> Expect an email from the network team within two business days.</div>` : `<form class="form" id="join-form" data-act="join-submit" novalidate style="background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px">
       <div class="field"><label for="j-name">Property name</label><input id="j-name" required placeholder="Maple Hill Inn"></div>
@@ -1022,7 +1033,7 @@ function viewJoin() {
       <div class="field"><label for="j-access">Accessibility</label><select id="j-access"><option>Step-free entrance and ground-floor rooms</option><option>Ground-floor rooms, steps at entry</option><option>Elevator</option><option>Stairs only</option></select></div>
       <div class="field"><label for="j-rooms">Number of rooms</label><input id="j-rooms" type="number" min="1" placeholder="8"></div>
       <div class="field"><label for="j-dist">Distance from trail (miles)</label><input id="j-dist" type="number" step="0.1" min="0" placeholder="0.5"></div>
-      <div class="field"><label for="j-sys">Booking system</label><select id="j-sys"><option>ResNexus</option><option>Cloudbeds</option><option>Little Hotelier</option><option>ThinkReservations</option><option>Airbnb / VRBO calendar</option><option>Other / paper calendar</option></select></div>
+      <div class="field"><label for="j-sys">Booking system</label><select id="j-sys"><option>ThinkReservations</option><option>ResNexus</option><option>Cloudbeds</option><option>Little Hotelier</option><option>Airbnb / VRBO calendar</option><option>Other / paper calendar</option></select></div>
       <div class="field"><label for="j-contact">Contact name</label><input id="j-contact" required></div>
       <div class="field"><label for="j-email">Email</label><input id="j-email" type="email" required></div>
       <div class="field span2"><label>Services you can offer</label><div style="display:flex;gap:16px;flex-wrap:wrap">${['Breakfast', 'Secure bike storage', 'Laundry', 'Pet friendly', 'Luggage transfer', 'E-bike charging', 'Tent sites'].map(a => `<label class="check"><input type="checkbox">${a}</label>`).join('')}</div></div>
@@ -1057,7 +1068,7 @@ function footerHTML() {
     <div><h4>Plan</h4><a href="#plan">Trip planner</a><a href="#map">Trail map</a><a href="#stays">All stays</a><a href="#trail-mode">Trail Mode (offline)</a></div>
     <div><h4>Trail</h4>${RESOURCES.slice(0, 4).map(r => `<a href="${r.url}" target="_blank" rel="noopener">${esc(r.name)}</a>`).join('')}</div>
     <div><h4>Association</h4><a href="#about">About ${ORG.short}</a><a href="#join">List your property</a><a href="#join">Baggage transfer partners</a><a href="${ORG.url}" target="_blank" rel="noopener">${ORG.site}</a></div>
-  </div><div class="fine">Prototype for ${ORG.short} review. Route alignment and mileage follow the MCRT full route on Ride with GPS (${TRAIL.length} mi). Trail surface and status reference: MassTrailTracker.com, an independent statewide trail map built by Danny in Boston. Parking and restroom points are real; lodging properties, shops and restaurants are illustrative examples, not real businesses. Booking engine integration: ResNexus.</div></div></footer>`;
+  </div><div class="fine">Prototype for ${ORG.short} review. Route alignment and mileage follow the MCRT full route on Ride with GPS (${TRAIL.length} mi). Trail surface and status reference: MassTrailTracker.com, an independent statewide trail map built by Danny in Boston. Parking and restroom points are real. Sugar Maple Trailside Inn and The Inn Crowd Bed and Breakfast are real, listed from their own websites; other lodging, shops and restaurants are illustrative examples. Booking engine integration: ThinkReservations.</div></div></footer>`;
 }
 function shell(view) {
   return navHTML() + `<main id="view">${view}</main>` + footerHTML() + '<div class="toast-host"></div>' + mobileBarHTML();

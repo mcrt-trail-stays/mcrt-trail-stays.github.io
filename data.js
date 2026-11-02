@@ -3,7 +3,8 @@
    Trail mileage is approximate and measured west → east from
    Northampton. In production these positions come from the
    MassTrailTracker.com trail reference; lodging comes from the
-   ResNexus-synced property directory. All properties are fictional.
+   ThinkReservations-synced property directory. Properties marked `real: true`
+   are listed from their own public websites; the rest are illustrative.
 ------------------------------------------------------------------- */
 
 /* The organization behind the site. Nonprofit; no referral fees, no paid placement. */
@@ -67,6 +68,31 @@ const SECTIONS = [
 
 /* Lodging. `dist` is miles from the trail; `mile` is nearest trail mile. */
 const LODGING = [
+  { id: 'sugarmaple', name: 'Sugar Maple Trailside Inn', town: 'Florence', type: 'bnb', mile: 0, dist: 0.0, rate: 149, rooms: 2, rating: 4.9, reviews: 30, side: -1, real: true, est: 1865, hosts: true,
+    amen: { breakfast: true, bike: true, laundry: false, pets: false, luggage: true },
+    tagline: 'A restored 1865 home eight feet from the trail, in the Florence village of Northampton.',
+    desc: 'Two guest rooms in a restored 1865 house on Chestnut Street, where the Mass Central Rail Trail runs along the old Williamsburg Branch. The innkeeper has spent 25 years helping turn rail lines into trails and keeps self-guided walking and biking tours for guests. An expanded continental breakfast is included, the house runs on solar, and the inn lends bikes to guests. Closest B&B to Smith College; Miss Florence Diner is 200 yards away.',
+    directions: 'The inn sits directly on the trail in Florence, about 2.5 miles west of downtown Northampton along the Northampton bikeway. Look for the 180-year-old sugar maple at 62 Chestnut Street.',
+    breakfast: 'Expanded continental included: coffee and tea, juices, baked goods, house granola and yogurt. Weekdays 7:00–9:00, weekends 8:00–10:00. Certificate for 10% off at Miss Florence Diner.',
+    checkin: 'After 4:00 PM', checkout: '11:00 AM', phone: '(413) 575-2277', web: 'www.sugar-maple-inn.com', address: '62 Chestnut Street, Florence, MA 01062',
+    roomTypes: [ { name: 'Haydenville Room (full bed, walk-in shower)', sleeps: 2, rate: 149 }, { name: 'Cedar Hill Room (queen, tiled walk-in shower)', sleeps: 2, rate: 179 } ],
+    policies: 'Two-night minimum Fridays and Saturdays. Children over 10 welcome. No pets or smoking. Rates include tax and breakfast.',
+    source: 'Details from sugar-maple-inn.com. Rates shown are the inn\'s published rates; availability is confirmed at booking.',
+    highlights: ['Eight feet from the trail, on the old Williamsburg Branch', 'Host with 25 years of rail-trail work and self-guided tour notes', 'Restored 1865 home with a City of Northampton preservation award', 'Loaner bikes for guests; a Bicycle Friendly Business'],
+    testimonials: [] },
+
+  { id: 'inncrowd', name: 'The Inn Crowd Bed and Breakfast', town: 'Holden', type: 'bnb', mile: 66.5, dist: 0.5, rate: 171, rooms: 3, rating: 0, reviews: 0, side: 1, real: true, est: '1800s',
+    amen: { breakfast: true, bike: false, laundry: false, pets: false, luggage: true },
+    tagline: 'A restored 19th-century colonial in Holden with three rooms, a wraparound porch, and a courtyard firepit.',
+    desc: 'Three guest rooms, each with a private full bathroom, in a restored 19th-century colonial home on Highland Street in Holden. A locally sourced homemade breakfast each morning, cozy common areas, a wraparound porch, and a courtyard with a firepit. Run by owner-operators Heather and Jason Linders. The rail trail, the Gale Free Library, and Holden\'s restaurants and Seven Saws Brewing are nearby.',
+    directions: 'About half a mile from the Holden section of the trail near the town center. Turn-by-turn directions to be confirmed with the innkeepers before listing goes live.',
+    breakfast: 'Locally sourced homemade breakfast included each morning.',
+    checkin: '3:00–7:00 PM (call for the door code)', checkout: '11:00 AM', phone: '(720) 385-8688', web: 'www.theinncrowdbandb.com', address: '63 Highland Street, Holden, MA 01520',
+    roomTypes: [ { name: 'Guest room with private full bath', sleeps: 2, rate: 171 } ],
+    policies: 'Guests 12 and over. No pets; smoke-free. Quiet hours 10 PM to 7 AM. Full refund if cancelled a week or more before arrival.',
+    source: 'Details from theinncrowdbandb.com. Rate shown is the average from public listings; room names, rates, and trail distance to be confirmed with the innkeepers.',
+    highlights: ['Three rooms, each with its own full bath', 'Wraparound porch and a courtyard firepit', 'Locally sourced homemade breakfast', 'Walk to Holden\'s restaurants, library, and brewery'],
+    testimonials: [] },
   { id: 'roundhouse', name: 'The Roundhouse Inn', town: 'Northampton', type: 'hotel', mile: 0.4, dist: 0.2, rate: 179, rooms: 24, rating: 4.7, reviews: 212, side: -1,
     amen: { breakfast: false, bike: true, laundry: true, pets: false, luggage: true },
     tagline: 'Converted rail roundhouse two blocks from the western trailhead.',
@@ -392,6 +418,8 @@ const TOUR_INCLUDES = [
 ];
 
 const RESOURCES = [
+  { name: 'MCRT.org · Mass Central Rail Trail', desc: 'The trail organization for the Boston to Northampton line.', url: 'https://masscentralrailtrail.org' },
+  { name: 'NHNCG.org · New Haven & Northampton Canal Greenway', desc: 'The 84-mile interstate trail that meets the MCRT in Northampton.', url: 'https://www.nhncg.org' },
   { name: 'MCRT full route on Ride with GPS', desc: '123.5 mi, +4,779 ft westbound. The turn-by-turn alignment this site\'s mileage is based on.', url: 'https://ridewithgps.com/routes/53812869' },
   { name: 'RN2B route (Ride Northampton to Boston)', desc: 'The Fall 2024 group-ride alignment recommended on MassTrailTracker.', url: 'https://ridewithgps.com/routes/47996539' },
   { name: 'MassTrailTracker.com', desc: 'Interactive trail map and status by segment. The reference map behind this site.', url: 'https://masstrailtracker.com' },
@@ -451,6 +479,13 @@ const CAMP_STORY = {
 };
 Object.assign(LODGING_STORY, CAMP_STORY);
 LODGING.forEach(l => Object.assign(l, LODGING_STORY[l.id] || {}, { access: ACCESS[l.id] || 'Ask the host about step-free access' }));
+
+/* The trail network: two long trails meeting in Northampton, where rail service exists. */
+const NETWORK = [
+  { id: 'mcrt', name: 'Mass Central Rail Trail', abbr: 'MCRT', from: 'Boston', to: 'Northampton', miles: 123.5, url: 'https://masscentralrailtrail.org', claim: 'The longest trail in New England.', status: 'In the planner now' },
+  { id: 'nhncg', name: 'New Haven & Northampton Canal Greenway', abbr: 'NHNCG', from: 'New Haven, CT', to: 'Northampton', miles: 84, url: 'https://www.nhncg.org', claim: 'The longest interstate trail in the Northeast.', status: 'Next in the planner' }
+];
+const HUB = { town: 'Northampton', note: 'Both trails meet in downtown Northampton, where Amtrak\'s Vermonter stops. Arrive by train, ride either line, and ride back.' };
 
 /* Education cards: history, ecology, etiquette, maintenance, safety. */
 const LEARN = [
